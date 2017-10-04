@@ -23,6 +23,89 @@ __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
 
 
+
+def train(train_loader, net, optimizer, cuda, criterion, epoch):
+    batch_time = AverageMeter()
+    data_time = AverageMeter()
+    losses = AverageMeter()
+
+    # switch to train mode
+    net.train()
+
+    end = time.time()
+
+    for i, (h, am, target) in enumerate(train_loader):
+        # Prepare input data
+        if cuda:
+            h, am, target = h.cuda(), am.cuda(), target.cuda()
+        h, am, target = Variable(h), Variable(am), Variable(target)
+
+        # Measure data loading time
+        data_time.update(time.time() - end)
+
+        optimizer.zero_grad()
+
+        # Compute features
+        output = net(h, am)
+
+        loss = criterion(output, target)
+
+        # Logs
+        losses.update(loss.data[0], im.size(0))
+
+        # Compute gradient and do SGD step
+        loss.backward()
+        optimizer.step()
+
+        # Measure elapsed time
+        batch_time.update(time.time() - end)
+        end = time.time()
+
+    print('Epoch: [{0}] Average Loss {loss.avg:.3f}; Avg Time x Batch {b_time.avg:.3f}'
+          .format(epoch, loss=losses, b_time=batch_time))
+
+    return losses
+
+
+def test(test_loader, net, cuda, criterion, evaluation):
+    batch_time = AverageMeter()
+    data_time = AverageMeter()
+    losses = AverageMeter()
+    acc = AverageMeter()
+
+    # switch to eval mode
+    net.eval()
+
+    end = time.time()
+
+    for i, (h, am, target) in enumerate(test_loader):
+        # Prepare input data
+        if cuda:
+            h, am, target = h.cuda(), am.cuda(), target.cuda()
+        h, am, target = Variable(h, volatile=True), Variable(am, volatile=True), Variable(target, volatile=True)
+
+        # Measure data loading time
+        data_time.update(time.time() - end)
+
+        # Compute features
+        output = net(h, am)
+
+        loss = criterion(output, target)
+        bacc = evaluation(output, target)
+        
+        # Logs
+        losses.update(loss.data[0], im.size(0))
+        acc.update(bacc.data[0], im.size(0))
+
+        # Measure elapsed time
+        batch_time.update(time.time() - end)
+        end = time.time()
+
+    print('Test: Average Loss {loss.avg:.3f}; Average ACC {acc.avg:.3f}; Avg Time x Batch {b_time.avg:.3f}'
+          .format(loss=losses, acc=acc, b_time=batch_time))
+
+    return losses, acc
+
 def main():
 
     print('Prepare dataset')
