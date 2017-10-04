@@ -17,7 +17,7 @@ import glob
 from options import Options
 import datasets
 from LogMetric import AverageMeter, Logger
-from utils import save_checkpoint, load_checkpoint
+from utils import save_checkpoint, load_checkpoint, accuracy
 
 __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
@@ -45,7 +45,7 @@ def main():
 
     print('Loss & optimizer')
     criterion = torch.nn.Loss()
-    evaluation = None
+    evaluation = accuracy
     optimizer = torch.optim.SGD(net.parameters(), args.learning_rate, momentum=args.momentum, weight_decay=args.decay, nesterov=True)
     
     print('Check CUDA')
