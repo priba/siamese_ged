@@ -19,10 +19,10 @@ def load_data(dataset, data_path):
     raise NameError(dataset + ' not implemented!')
 
 
-def load_washington(data_path):
+def load_letters(data_path):
     # Get data for train, validation and test
     data_train = datasets.Letters(data_path, 'train.cxl')
-    data_valid = datasets.Letters(data_path, 'valid.cxl')
+    data_valid = datasets.Letters(data_path, 'validation.cxl')
     data_test = datasets.Letters(data_path, 'test.cxl')
 
     return data_train, data_valid, data_test

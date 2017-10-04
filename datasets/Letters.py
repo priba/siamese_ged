@@ -1,20 +1,29 @@
 # -*- coding: utf-8 -*-
+import torch
 import torch.utils.data as data
 import xml.etree.ElementTree as ET
+import numpy as np
 
 __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
 
+
 class Letters(data.Dataset):
-    def __init__(self, root_path, file_list)
+    def __init__(self, root_path, file_list):
         self.root = root_path
         self.file_list = file_list
 
         self.graphs, self.labels = self.getFileList()
 
+        self.unique_labels = np.unique(self.labels)
+        self.labels = [np.where(target == self.unique_labels)[0][0] for target in self.labels]
+
     def __getitem__(self, index):
-        target = self.classes[index]
-        return _, target
+        node_labels, am = self.create_graph_letter(self.root + self.graphs[index])
+        target = self.labels[index]
+        node_labels = torch.FloatTensor(node_labels)
+        am = torch.FloatTensor(am)
+        return (node_labels, am) , target
 
     def getFileList(self):
         elements = []
@@ -32,20 +41,26 @@ class Letters(data.Dataset):
 
         tree_gxl = ET.parse(file)
         root_gxl = tree_gxl.getroot()
-        vl = []
+        node_label = []
+        node_id = []
         for node in root_gxl.iter('node'):
+            node_id += [node.get('id')]
             for attr in node.iter('attr'):
                 if (attr.get('name') == 'x'):
                     x = float(attr.find('float').text)
                 elif (attr.get('name') == 'y'):
                     y = float(attr.find('float').text)
-            vl += [[x, y]]
-        
+            node_label += [[x, y]]
+
+        node_label = np.array(node_label)
+        node_id = np.array(node_id)
+
+        am = np.zeros((len(node_id), len(node_id)))
+
         for edge in root_gxl.iter('edge'):
-            s = int(edge.get('from').split('_')[1])
-            t = int(edge.get('to').split('_')[1])
+            s = np.where(np.array(node_id)==edge.get('from'))[0][0]
+            t = np.where(np.array(node_id)==edge.get('to'))[0][0]
+            am[s,t] = 1
+            am[t,s] = 1
 
-        for i in range(len(vl)):
-            np.array(vl[i][:2])
-
-        return _ 
+        return node_label, am

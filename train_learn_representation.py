@@ -11,14 +11,16 @@ Learns a classifier using a Neural Message Passing network. Drops the Readout la
 import torch
 import time
 from torch.autograd.variable import Variable
+import glob
 
 # Own modules
-from option import Options
+from options import Options
 import datasets
 from LogMetric import AverageMeter, Logger
 
 __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
+
 
 def main():
     print('Prepare dataset')
