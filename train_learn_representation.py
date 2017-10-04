@@ -127,7 +127,7 @@ def main():
     net = None
 
     print('Loss & optimizer')
-    criterion = torch.nn.Loss()
+    criterion = torch.nn.NLLLoss()
     evaluation = accuracy
     optimizer = torch.optim.SGD(net.parameters(), args.learning_rate, momentum=args.momentum, weight_decay=args.decay, nesterov=True)
     
