@@ -29,6 +29,9 @@ class Letters(data.Dataset):
     def __len__(self):
         return len(self.labels)
 
+    def getTargetSize(self):
+        return len(self.unique_labels)
+
     def getFileList(self):
         elements = []
         classes = []

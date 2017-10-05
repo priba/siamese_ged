@@ -22,6 +22,8 @@ class MpnnGGNN(nn.Module):
 
         Parameters
         ----------
+        in_size : int
+            Size of the input features per node.
         e : int list.
             Possible edge labels for the input graph.
         hidden_state_size : int
@@ -30,13 +32,13 @@ class MpnnGGNN(nn.Module):
             Message function output vector size.
         n_layers : int
             Number of iterations Message+Update (weight tying).
-        l_target : int
-            Size of the output.
-        type : str (Optional)
+        target_size : int
+            Number of output classes.
+        out_type : str (Optional)
             Classification | [Regression (default)]. If classification, LogSoftmax layer is applied to the output vector.
     """
 
-    def __init__(self, in_n, e, hidden_state_size, message_size, n_layers, l_target, out_type='classification'):
+    def __init__(self, in_size, e, hidden_state_size, message_size, n_layers, target_size, out_type='classification'):
         super(MpnnGGNN, self).__init__()
 
         # Define message
@@ -46,7 +48,7 @@ class MpnnGGNN(nn.Module):
         self.u = UpdateFunction.Ggnn(args={'in_m': message_size, 'out': hidden_state_size})
 
         # Define Readout
-        self.r = ReadoutFunction.Ggnn(args={'in': in_n[0], 'hidden': hidden_state_size, 'target': l_target})
+        self.r = ReadoutFunction.Ggnn(args={'in': in_size, 'hidden': hidden_state_size, 'target': target_size})
 
         self.type = lower(out_type)
 
@@ -55,7 +57,7 @@ class MpnnGGNN(nn.Module):
 
         self.n_layers = n_layers
 
-    def forward(self, h_in, am):
+    def forward(self, h_in, am, g_size):
 
         # Padding to some larger dimension d
         h_t = torch.cat([h_in, Variable(

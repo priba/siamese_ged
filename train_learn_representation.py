@@ -38,8 +38,8 @@ def train(train_loader, net, optimizer, cuda, criterion, epoch):
     for i, (h, am, g_size, target) in enumerate(train_loader):
         # Prepare input data
         if cuda:
-            h, am, target = h.cuda(), am.cuda(), target.cuda()
-        h, am, target = Variable(h), Variable(am), Variable(target)
+            h, am, g_size, target = h.cuda(), am.cuda(), g_size.cuda(), target.cuda()
+        h, am, g_size, target = Variable(h), Variable(am), Variable(g_size), Variable(target)
 
         # Measure data loading time
         data_time.update(time.time() - end)
@@ -47,7 +47,7 @@ def train(train_loader, net, optimizer, cuda, criterion, epoch):
         optimizer.zero_grad()
 
         # Compute features
-        output = net(h, am)
+        output = net(h, am, g_size)
 
         loss = criterion(output, target)
 
@@ -89,7 +89,7 @@ def test(test_loader, net, cuda, criterion, evaluation):
         data_time.update(time.time() - end)
 
         # Compute features
-        output = net(h, am)
+        output = net(h, am, g_size)
 
         loss = criterion(output, target)
         bacc = evaluation(output, target)
@@ -125,7 +125,7 @@ def main():
                                               num_workers=args.prefetch, pin_memory=True)
 
     print('Create model')
-    net = models.MpnnGGNN()
+    net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=64, message_size=64, target_size=data_train.getTargetSize())
 
     print('Loss & optimizer')
     criterion = torch.nn.NLLLoss()
