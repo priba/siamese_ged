@@ -1,2 +1,2 @@
-from .Nmp import Nmp
+from .MpnnGGNN import MpnnGGNN
 

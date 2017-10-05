@@ -18,6 +18,7 @@ from options import Options
 import datasets
 from LogMetric import AverageMeter, Logger
 from utils import save_checkpoint, load_checkpoint, accuracy
+from models import MpnnGGNN
 
 __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
@@ -124,7 +125,7 @@ def main():
                                               num_workers=args.prefetch, pin_memory=True)
 
     print('Create model')
-    net = None
+    net = MpnnGGNN()
 
     print('Loss & optimizer')
     criterion = torch.nn.NLLLoss()
