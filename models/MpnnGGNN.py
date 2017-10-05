@@ -1,13 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from MessageFunction import MessageFunction
-from UpdateFunction import UpdateFunction
-from ReadoutFunction import ReadoutFunction
-
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
+
+import MessageFunction
+import UpdateFunction
+import ReadoutFunction
 
 __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
@@ -36,31 +36,26 @@ class MpnnGGNN(nn.Module):
             Classification | [Regression (default)]. If classification, LogSoftmax layer is applied to the output vector.
     """
 
-    def __init__(self, in_n, e, hidden_state_size, message_size, n_layers, l_target, type='regression'):
+    def __init__(self, in_n, e, hidden_state_size, message_size, n_layers, l_target, out_type='classification'):
         super(MpnnGGNN, self).__init__()
 
         # Define message
-        self.m = nn.ModuleList([MessageFunction('ggnn', args={'e_label': e, 'in': hidden_state_size, 'out': message_size})])
+        self.m = MessageFunction.Ggnn(args={'e_label': e, 'in': hidden_state_size, 'out': message_size})
 
         # Define Update
-        self.u = nn.ModuleList([UpdateFunction('ggnn',
-                                                args={'in_m': message_size,
-                                                'out': hidden_state_size})])
+        self.u = UpdateFunction.Ggnn(args={'in_m': message_size, 'out': hidden_state_size})])
 
         # Define Readout
-        self.r = ReadoutFunction('ggnn',
-                                 args={'in': in_n[0],
-                                       'hidden': hidden_state_size,
-                                       'target': l_target})
+        self.r = ReadoutFunction.Ggnn(args={'in': in_n[0], 'hidden': hidden_state_size, 'target': l_target})
 
-        self.type = type
+        self.type = lower(out_type)
 
         self.args = {}
         self.args['out'] = hidden_state_size
 
         self.n_layers = n_layers
 
-    def forward(self, g, h_in, e):
+    def forward(self, h_in, am):
 
         # Padding to some larger dimension d
         h_t = torch.cat([h_in, Variable(
