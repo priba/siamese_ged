@@ -69,7 +69,7 @@ class MpnnGGNN(nn.Module):
 
             h_aux = h_t.view(-1, h_t.size(2))
 
-            m = self.m[0].forward(h_t, h_aux, e_aux)
+            m = self.m(h_t, h_aux, e_aux)
             m = m.view(h_t.size(0), h_t.size(1), -1, m.size(1))
 
             # Nodes without edge set message to 0
@@ -77,13 +77,13 @@ class MpnnGGNN(nn.Module):
 
             m = torch.squeeze(torch.sum(m, 1))
 
-            h_t = self.u[0].forward(h_t, m)
+            h_t = self.u(h_t, m)
 
             # Delete virtual nodes
             h_t = (h_in.abs().sum(2).expand_as(h_t) > 0).type_as(h_t) * h_t
 
         # Readout
-        res = self.r.forward([h_t, h_in])
+        res = self.r([h_t, h_in])
 
         if self.type == 'classification':
             res = nn.LogSoftmax()(res)

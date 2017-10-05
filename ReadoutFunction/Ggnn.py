@@ -25,10 +25,25 @@ class Ggnn(nn.Module):
     def __init__(self, args={}):
         super(Ggnn, self).__init__()
         self.args = args
+        self.in_size = args{'in'}
+        self.hidden_size = args{'hidden'}
+        self.out_size = args{'target'}
+
+	self.i = nn.Sequential(nn.Linear(self.in_size+self.hidden_size, 128),
+                    nn.ReLU(), nn.Linear(128, self.out_size))
+	self.j = nn.Sequential(nn.Linear(self.hidden_size,128), nn.ReLu(), nn.Linear(128,self.output_size))
 
     # Readout function
     def forward(self, h_v, h_w, e_vw, args=None):
-        return output
+	h_t = h[0].view(-1, h[0].size(2))
+        h_0 = h[1].view(-1, h[1].size(2))
+        read = nn.Sigmoid()(self.i(torch.cat([h_t, h_0], 1))*self.j(h_t))
+
+        read = (h_0.abs().sum(1).expand_as(read)>0).type_as(read) * read
+
+        read = read.view(h[0].size(0), h[0].size(1), -1)
+
+        return read.sum(1)
 
     # Get the name of the used message function
     def get_definition(self):
