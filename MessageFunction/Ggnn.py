@@ -11,8 +11,10 @@
 
 from __future__ import print_function
 
-# Own modules
+import torch
+import torch.nn as nn
 
+# Own modules
 
 __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat" 
@@ -23,7 +25,6 @@ class Ggnn(nn.Module):
     # Constructor
     def __init__(self, args={}):
         super(Ggnn, self).__init__()
-        self.m_function = None
         self.args = args
 
     # Message from h_v to h_w through e_vw

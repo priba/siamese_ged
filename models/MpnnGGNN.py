@@ -43,7 +43,7 @@ class MpnnGGNN(nn.Module):
         self.m = MessageFunction.Ggnn(args={'e_label': e, 'in': hidden_state_size, 'out': message_size})
 
         # Define Update
-        self.u = UpdateFunction.Ggnn(args={'in_m': message_size, 'out': hidden_state_size})])
+        self.u = UpdateFunction.Ggnn(args={'in_m': message_size, 'out': hidden_state_size})
 
         # Define Readout
         self.r = ReadoutFunction.Ggnn(args={'in': in_n[0], 'hidden': hidden_state_size, 'target': l_target})

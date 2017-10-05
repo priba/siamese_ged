@@ -12,17 +12,17 @@ import torch
 import time
 from torch.autograd.variable import Variable
 import glob
+import os
 
 # Own modules
 from options import Options
 import datasets
 from LogMetric import AverageMeter, Logger
 from utils import save_checkpoint, load_checkpoint, accuracy
-from models import MpnnGGNN
+import models
 
 __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
-
 
 
 def train(train_loader, net, optimizer, cuda, criterion, epoch):
@@ -35,7 +35,7 @@ def train(train_loader, net, optimizer, cuda, criterion, epoch):
 
     end = time.time()
 
-    for i, (h, am, target) in enumerate(train_loader):
+    for i, (h, am, g_size, target) in enumerate(train_loader):
         # Prepare input data
         if cuda:
             h, am, target = h.cuda(), am.cuda(), target.cuda()
@@ -52,7 +52,7 @@ def train(train_loader, net, optimizer, cuda, criterion, epoch):
         loss = criterion(output, target)
 
         # Logs
-        losses.update(loss.data[0], im.size(0))
+        losses.update(loss.data[0], h.size(0))
 
         # Compute gradient and do SGD step
         loss.backward()
@@ -79,7 +79,7 @@ def test(test_loader, net, cuda, criterion, evaluation):
 
     end = time.time()
 
-    for i, (h, am, target) in enumerate(test_loader):
+    for i, (h, am, g_size, target) in enumerate(test_loader):
         # Prepare input data
         if cuda:
             h, am, target = h.cuda(), am.cuda(), target.cuda()
@@ -95,8 +95,8 @@ def test(test_loader, net, cuda, criterion, evaluation):
         bacc = evaluation(output, target)
         
         # Logs
-        losses.update(loss.data[0], im.size(0))
-        acc.update(bacc.data[0], im.size(0))
+        losses.update(loss.data[0], h.size(0))
+        acc.update(bacc.data[0], h.size(0))
 
         # Measure elapsed time
         batch_time.update(time.time() - end)
@@ -114,18 +114,18 @@ def main():
     data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path)
 
     # Data Loader
-    train_loader = torch.utils.data.DataLoader(data_train,
+    train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size,
                                                batch_size=args.batch_size, shuffle=True,
                                                num_workers=args.prefetch, pin_memory=True)
     valid_loader = torch.utils.data.DataLoader(data_valid,
-                                               batch_size=args.batch_size,
+                                               batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size,
                                                num_workers=args.prefetch, pin_memory=True)
     test_loader = torch.utils.data.DataLoader(data_test,
-                                              batch_size=args.batch_size,
+                                              batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size,
                                               num_workers=args.prefetch, pin_memory=True)
 
     print('Create model')
-    net = MpnnGGNN()
+    net = models.MpnnGGNN()
 
     print('Loss & optimizer')
     criterion = torch.nn.NLLLoss()
@@ -133,7 +133,7 @@ def main():
     optimizer = torch.optim.SGD(net.parameters(), args.learning_rate, momentum=args.momentum, weight_decay=args.decay, nesterov=True)
     
     print('Check CUDA')
-    if ars.cuda and args.ngpu > 1:
+    if args.cuda and args.ngpu > 1:
         print('\t* Data Parallel **NOT TESTED**')
         net = torch.nn.DataParallel(net, device_ids=list(range(args.ngpu)))
 
@@ -142,11 +142,11 @@ def main():
         net.cuda()
 
     start_epoch = 0
-    
+    best_acc = 0
     if args.load is not None:
         print('Loading model')
         checkpoint = load_checkpoint(args.load)
-	net.load_state_dict(checkpoint['state_dict'])
+        net.load_state_dict(checkpoint['state_dict'])
         start_epoch = checkpoint['epoch']
         best_acc = checkpoint['best_acc']
 
@@ -172,12 +172,12 @@ def main():
             # Scalars
             logger.add_scalar('loss_train', loss_train.avg)
             logger.add_scalar('loss_valid', loss_valid.avg)
-            logger.add_scalar('add_valid', cer_valid.avg)
+            logger.add_scalar('add_valid', acc_valid.avg)
             logger.add_scalar('learning_rate', args.learning_rate)
 
             logger.step()
 
-	# Load Best model to evaluate in test if we are saving it in a checkpoint
+        # Load Best model to evaluate in test if we are saving it in a checkpoint
         if args.save is not None:
             print('Loading best model to test')
             best_model_file = os.path.join(args.save, 'checkpoint.pth')

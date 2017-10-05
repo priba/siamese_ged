@@ -23,7 +23,11 @@ class Letters(data.Dataset):
         target = self.labels[index]
         node_labels = torch.FloatTensor(node_labels)
         am = torch.FloatTensor(am)
-        return (node_labels, am) , target
+        am = am.unsqueeze(2) # Generalize to graphs with n features in the edges
+        return node_labels, am, target
+
+    def __len__(self):
+        return len(self.labels)
 
     def getFileList(self):
         elements = []
