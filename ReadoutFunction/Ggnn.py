@@ -25,13 +25,13 @@ class Ggnn(nn.Module):
     def __init__(self, args={}):
         super(Ggnn, self).__init__()
         self.args = args
-        self.in_size = args{'in'}
-        self.hidden_size = args{'hidden'}
-        self.out_size = args{'target'}
+        self.in_size = args['in']
+        self.hidden_size = args['hidden']
+        self.out_size = args['target']
 
 	self.i = nn.Sequential(nn.Linear(self.in_size+self.hidden_size, 128),
                     nn.ReLU(), nn.Linear(128, self.out_size))
-	self.j = nn.Sequential(nn.Linear(self.hidden_size,128), nn.ReLu(), nn.Linear(128,self.output_size))
+	self.j = nn.Sequential(nn.Linear(self.hidden_size,128), nn.ReLU(), nn.Linear(128,self.out_size))
 
     # Readout function
     def forward(self, h_v, h_w, e_vw, args=None):

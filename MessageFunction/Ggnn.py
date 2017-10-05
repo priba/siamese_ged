@@ -26,9 +26,9 @@ class Ggnn(nn.Module):
     def __init__(self, args={}):
         super(Ggnn, self).__init__()
         self.args = args
-        self.e_label = args{'e_label'}
-        self.in_size = args{'in'}
-        self.out_size = args{'out'}
+        self.e_label = args['e_label']
+        self.in_size = args['in']
+        self.out_size = args['out']
 
         self.edge_matix = nn.Parameter(torch.randn(len(self.e_label), self.out_size, self.in_size))
 

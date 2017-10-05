@@ -50,7 +50,7 @@ class MpnnGGNN(nn.Module):
         # Define Readout
         self.r = ReadoutFunction.Ggnn(args={'in': in_size, 'hidden': hidden_state_size, 'target': target_size})
 
-        self.type = lower(out_type)
+        self.type = out_type.lower()
 
         self.args = {}
         self.args['out'] = hidden_state_size

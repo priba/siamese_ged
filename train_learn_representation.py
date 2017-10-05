@@ -125,7 +125,7 @@ def main():
                                               num_workers=args.prefetch, pin_memory=True)
 
     print('Create model')
-    net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=64, message_size=64, target_size=data_train.getTargetSize())
+    net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=64, message_size=64, n_layers=2, target_size=data_train.getTargetSize())
 
     print('Loss & optimizer')
     criterion = torch.nn.NLLLoss()

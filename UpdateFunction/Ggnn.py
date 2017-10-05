@@ -25,8 +25,8 @@ class Ggnn(nn.Module):
     def __init__(self, args={}):
         super(Ggnn, self).__init__()
         self.args = args
-        self.message_size = args{'in_m'}
-        self.hidden_state_size = args{'out'}
+        self.message_size = args['in_m']
+        self.hidden_state_size = args['out']
 	
 	self.gru = nn.GRUCell(self.message_size, self.hidden_state_size)
 
