@@ -57,7 +57,7 @@ class MpnnGGNN(nn.Module):
 
         self.n_layers = n_layers
 
-    def forward(self, h_in, am, g_size):
+    def forward(self, h_in, am, g_size, output='embedding'):
 
         # Padding to some larger dimension d
         h_t = torch.cat([h_in, Variable(
@@ -93,9 +93,12 @@ class MpnnGGNN(nn.Module):
             h_t = node_mask.expand_as(h_t) * h_t
 
         # Readout
-        res = self.r([h_t, h_in], args={'node_mask': node_mask})
+        if output == 'embedding':
+            res = self.r([h_t, h_in], args={'node_mask': node_mask})
 
-        if self.type == 'classification':
-            res = nn.LogSoftmax()(res)
-        return res
+            if self.type == 'classification':
+                res = nn.LogSoftmax()(res)
+            return res
+        else:
+            return h_t
 

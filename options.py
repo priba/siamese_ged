@@ -22,7 +22,7 @@ class Options():
         # Model parameters
         parser.add_argument('--nlayers', type=int, default=2, help='Message passing + Update layers.')
         # Optimization options
-        parser.add_argument('--epochs', '-e', type=int, default=5000, help='Number of epochs to train.')
+        parser.add_argument('--epochs', '-e', type=int, default=50, help='Number of epochs to train.')
         parser.add_argument('--batch_size', '-b', type=int, default=64, help='Batch size.')
         parser.add_argument('--learning_rate', '-lr', type=float, default=1e-2, help='The Learning Rate.')
         parser.add_argument('--momentum', '-m', type=float, default=0.9, help='Momentum.')
