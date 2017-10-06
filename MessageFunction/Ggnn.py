@@ -38,15 +38,15 @@ class Ggnn(nn.Module):
         e_vw = e_vw - 1
         e_vw[e_vw == -1] = 0
         e_vw = torch.squeeze(e_vw.long())
-        edge_output = torch.index_select(self.learn_args[0], 0, e_vw)
+        edge_output = torch.index_select(self.edge_matix, 0, e_vw)
 
         h_w_rows = h_w[..., None].expand(h_w.size(0), h_v.size(1), h_w.size(1)).contiguous()
 
-        h_w_rows = h_w_rows.view(-1, self.args['in'])
+        h_w_rows = h_w_rows.view(-1, self.in_size)
 
-        h_multiply = torch.bmm(edge_output, torch.unsqueeze(h_w_rows, 2))
+        h_multiply = torch.bmm(edge_output, h_w_rows.unsqueeze(2))
 
-        m_new = torch.squeeze(h_multiply)
+        m_new = h_multiply.squeeze()
 
         return m_new
 

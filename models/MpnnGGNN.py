@@ -65,7 +65,7 @@ class MpnnGGNN(nn.Module):
 
         # Layer
         for t in range(0, self.n_layers):
-            e_aux = e.view(-1, e.size(3))
+            e_aux = am.view(-1, am.size(3))
 
             h_aux = h_t.view(-1, h_t.size(2))
 
@@ -73,7 +73,7 @@ class MpnnGGNN(nn.Module):
             m = m.view(h_t.size(0), h_t.size(1), -1, m.size(1))
 
             # Nodes without edge set message to 0
-            m = torch.unsqueeze(g, 3).expand_as(m) * m
+            m = (am.sum(-1,keepdim=True)>0).float().expand_as(m) * m
 
             m = torch.squeeze(torch.sum(m, 1))
 
