@@ -27,15 +27,15 @@ class Ggnn(nn.Module):
         self.args = args
         self.message_size = args['in_m']
         self.hidden_state_size = args['out']
-	
-	self.gru = nn.GRUCell(self.message_size, self.hidden_state_size)
 
-    # Readout function
-    def forward(self, h_v, h_w, e_vw, args=None):
-	h_in = h_v.view(-1, h_v.size(2))
+        self.gru = nn.GRUCell(self.message_size, self.hidden_state_size)
+
+    # Update function
+    def forward(self, h_v, m_v, args=None):
+        h_in = h_v.view(-1, h_v.size(2))
         m_in = m_v.view(-1, m_v.size(2))
-        h_new = self.gru(m_in[None, ...], h_in[None, ...])
-        return torch.squeeze(h_new).view(h_v.size())
+        h_new = self.gru(m_in, h_in)
+        return h_new.view(h_v.size())
 
     # Get the name of the used message function
     def get_definition(self):

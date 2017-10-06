@@ -62,6 +62,14 @@ class MpnnGGNN(nn.Module):
         # Padding to some larger dimension d
         h_t = torch.cat([h_in, Variable(
             torch.zeros(h_in.size(0), h_in.size(1), self.args['out'] - h_in.size(2)).type_as(h_in.data))], 2)
+        
+        # Create a mask for nodes
+        node_mask = torch.arange(0,h_in.size(1)).unsqueeze(0).expand(h_in.size(0), h_in.size(1))
+        node_mask = (node_mask < g_size.unsqueeze(-1).expand_as(node_mask)).float()
+        node_mask = node_mask.unsqueeze(-1)
+
+        # Create a mask for edges
+        edge_mask = (am.sum(-1,keepdim=True) > 0).float()
 
         # Layer
         for t in range(0, self.n_layers):
@@ -73,9 +81,9 @@ class MpnnGGNN(nn.Module):
             m = m.view(h_t.size(0), h_t.size(1), -1, m.size(1))
 
             # Nodes without edge set message to 0
-            m = (am.sum(-1,keepdim=True)>0).float().expand_as(m) * m
+            m = edge_mask.expand_as(m) * m
 
-            m = torch.squeeze(torch.sum(m, 1))
+            m = m.sum(1)
 
             h_t = self.u(h_t, m)
 
