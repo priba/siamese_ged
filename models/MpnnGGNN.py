@@ -64,9 +64,11 @@ class MpnnGGNN(nn.Module):
             torch.zeros(h_in.size(0), h_in.size(1), self.args['out'] - h_in.size(2)).type_as(h_in.data))], 2)
         
         # Create a mask for nodes
-        node_mask = torch.arange(0,h_in.size(1)).unsqueeze(0).expand(h_in.size(0), h_in.size(1))
+        node_mask = torch.arange(0,h_in.size(1)).unsqueeze(0).expand(h_in.size(0), h_in.size(1)).long()
+        if g_size.is_cuda:
+            node_mask = node_mask.cuda()
         node_mask = (node_mask < g_size.unsqueeze(-1).expand_as(node_mask)).float()
-        node_mask = node_mask.unsqueeze(-1)
+        node_mask = Variable(node_mask.unsqueeze(-1))
 
         # Create a mask for edges
         edge_mask = (am.sum(-1,keepdim=True) > 0).float()
@@ -88,7 +90,7 @@ class MpnnGGNN(nn.Module):
             h_t = self.u(h_t, m)
 
             # Delete virtual nodes
-            h_t = (h_in.abs().sum(2).expand_as(h_t) > 0).type_as(h_t) * h_t
+            h_t = node_mask.expand_as(h_t) * h_t
 
         # Readout
         res = self.r([h_t, h_in])

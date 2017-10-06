@@ -39,7 +39,7 @@ def train(train_loader, net, optimizer, cuda, criterion, epoch):
         # Prepare input data
         if cuda:
             h, am, g_size, target = h.cuda(), am.cuda(), g_size.cuda(), target.cuda()
-        h, am, g_size, target = Variable(h), Variable(am), Variable(g_size), Variable(target)
+        h, am, target = Variable(h), Variable(am), Variable(target)
 
         # Measure data loading time
         data_time.update(time.time() - end)
@@ -106,6 +106,7 @@ def test(test_loader, net, cuda, criterion, evaluation):
           .format(loss=losses, acc=acc, b_time=batch_time))
 
     return losses, acc
+
 
 def main():
 
