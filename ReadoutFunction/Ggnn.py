@@ -29,19 +29,19 @@ class Ggnn(nn.Module):
         self.hidden_size = args['hidden']
         self.out_size = args['target']
 
-	self.i = nn.Sequential(nn.Linear(self.in_size+self.hidden_size, 128),
+        self.i = nn.Sequential(nn.Linear(self.in_size+self.hidden_size, 128),
                     nn.ReLU(), nn.Linear(128, self.out_size))
-	self.j = nn.Sequential(nn.Linear(self.hidden_size,128), nn.ReLU(), nn.Linear(128,self.out_size))
+        self.j = nn.Sequential(nn.Linear(self.hidden_size,128), nn.ReLU(), nn.Linear(128,self.out_size))
 
     # Readout function
-    def forward(self, h_v, h_w, e_vw, args=None):
-	h_t = h[0].view(-1, h[0].size(2))
+    def forward(self, h, args=None):
+        h_t = h[0].view(-1, h[0].size(2))
         h_0 = h[1].view(-1, h[1].size(2))
         read = nn.Sigmoid()(self.i(torch.cat([h_t, h_0], 1))*self.j(h_t))
 
-        read = (h_0.abs().sum(1).expand_as(read)>0).type_as(read) * read
-
         read = read.view(h[0].size(0), h[0].size(1), -1)
+
+        read = args['node_mask'].expand_as(read) * read
 
         return read.sum(1)
 

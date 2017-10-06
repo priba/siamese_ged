@@ -93,7 +93,7 @@ class MpnnGGNN(nn.Module):
             h_t = node_mask.expand_as(h_t) * h_t
 
         # Readout
-        res = self.r([h_t, h_in])
+        res = self.r([h_t, h_in], args={'node_mask': node_mask})
 
         if self.type == 'classification':
             res = nn.LogSoftmax()(res)
