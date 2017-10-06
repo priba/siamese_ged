@@ -31,19 +31,19 @@ def load_letters(data_path):
 
 def collate_fn_multiple_size(batch):
     n_batch = len(batch)
-    g_size = torch.LongTensor([[x[0].size(0), x[0].size(1), x[1].size(2)] for x in batch])
-    sz, _ = g_size.max(dim=0)
+    g_size = torch.LongTensor([x[0].size(0) for x in batch])
+    graph_size = torch.LongTensor([[x[0].size(0), x[0].size(1), x[1].size(2)] for x in batch])
+    sz, _ = graph_size.max(dim=0)
 
-    g_size = g_size[:,0]
     n_labels = torch.zeros(n_batch, sz[0], sz[1])
     am = torch.zeros(n_batch, sz[0], sz[0], sz[2])
     targets = torch.LongTensor([x[2] for x in batch])
 
     for i in range(n_batch):
         # Node Features
-        n_labels[i, 0:g_size[i], :] = batch[i][0]
+        n_labels[i, :g_size[i], :] = batch[i][0]
 
         # Adjacency matrix
-        am[i, 0:g_size[i], 0:g_size[i], :] = batch[i][1]
+        am[i, :g_size[i], :g_size[i], :] = batch[i][1]
 
     return n_labels, am, g_size, targets

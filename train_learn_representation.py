@@ -186,7 +186,7 @@ def main():
 
     # Evaluate best model in Test
     print('Test:')
-    loss_test, acc_test = test(test_loader, net, args.ngpu > 0, criterion, evaluation, char_enc)
+    loss_test, acc_test = test(test_loader, net, args.ngpu > 0, criterion, evaluation)
 
 def adjust_learning_rate(optimizer, epoch):
     """Updates the learning rate given an schedule and a gamma parameter.
