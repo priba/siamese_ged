@@ -35,10 +35,11 @@ class Ggnn(nn.Module):
     # Message from h_v to h_w through e_vw
     # M_t(h^t_v, h^t_w, e_vw) = A_e_vw h^t_w
     def forward(self, h_v, h_w, e_vw):
-        e_vw = e_vw - 1
-        e_vw[e_vw == -1] = 0
-        e_vw = torch.squeeze(e_vw.long())
-        edge_output = torch.index_select(self.edge_matix, 0, e_vw)
+        e_aux = e_vw.clone()
+        for i in range(len(self.e_label)):
+            e_aux.masked_fill_(e_vw==self.e_label[i], i)
+        e_aux = e_aux.squeeze().long()
+        edge_output = torch.index_select(self.edge_matix, 0, e_aux)
 
         h_w_rows = h_w[..., None].expand(h_w.size(0), h_v.size(1), h_w.size(1)).contiguous()
 

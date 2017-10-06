@@ -173,7 +173,7 @@ def main():
             # Scalars
             logger.add_scalar('loss_train', loss_train.avg)
             logger.add_scalar('loss_valid', loss_valid.avg)
-            logger.add_scalar('add_valid', acc_valid.avg)
+            logger.add_scalar('acc_valid', acc_valid.avg)
             logger.add_scalar('learning_rate', args.learning_rate)
 
             logger.step()
