@@ -82,7 +82,7 @@ def test(test_loader, net, cuda, criterion, evaluation):
     for i, (h, am, g_size, target) in enumerate(test_loader):
         # Prepare input data
         if cuda:
-            h, am, target = h.cuda(), am.cuda(), target.cuda()
+            h, am, g_size, target = h.cuda(), am.cuda(), g_size.cuda(), target.cuda()
         h, am, target = Variable(h, volatile=True), Variable(am, volatile=True), Variable(target, volatile=True)
 
         # Measure data loading time
@@ -96,7 +96,7 @@ def test(test_loader, net, cuda, criterion, evaluation):
         
         # Logs
         losses.update(loss.data[0], h.size(0))
-        acc.update(bacc.data[0], h.size(0))
+        acc.update(bacc[0].data[0], h.size(0))
 
         # Measure elapsed time
         batch_time.update(time.time() - end)
