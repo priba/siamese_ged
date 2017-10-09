@@ -18,8 +18,9 @@ import os
 from options import Options
 import datasets
 from LogMetric import AverageMeter, Logger
-from utils import save_checkpoint, load_checkpoint, accuracy
+from utils import save_checkpoint, load_checkpoint, accuracy, accuracy_pred
 import models
+import GraphEditDistance
 
 __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
@@ -68,7 +69,7 @@ def train(train_loader, net, optimizer, cuda, criterion, epoch):
     return losses
 
 
-def test(test_loader, net, cuda, criterion, evaluation):
+def validation(test_loader, net, cuda, criterion, evaluation):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
@@ -108,6 +109,56 @@ def test(test_loader, net, cuda, criterion, evaluation):
     return losses, acc
 
 
+def test(test_loader, train_loader, net, distance, cuda, evaluation):
+    batch_time = AverageMeter()
+    acc = AverageMeter()
+
+    end = time.time()
+
+    for i, (h1, am1, g_size1, target1) in enumerate(test_loader):
+        # Prepare input data
+        if cuda:
+            h1, am1, g_size1, target1 = h1.cuda(), am1.cuda(), g_size1.cuda(), target1.cuda()
+        h1, am1, target1 = Variable(h1), Variable(am1), Variable(target1)
+
+        # Compute features
+        output1 = net(h1, am1, g_size1, output='nodes')
+
+        D_aux = []
+        T_aux = []
+        for j, (h2, am2, g_size2, target2) in enumerate(train_loader):
+            # Prepare input data
+            if cuda:
+                h2, am2, g_size2, target2 = h2.cuda(), am2.cuda(), g_size2.cuda(), target2.cuda()
+            h2, am2, target2 = Variable(h2), Variable(am2), Variable(target2)
+
+            # Compute features
+            output2 = net(h2, am2, g_size2, output='nodes')
+
+            d = distance(output1, g_size1, output2, g_size2)
+
+            D_aux.append(d)
+            T_aux.append(target2)
+
+        D = torch.cat(D_aux, 1)
+        T = torch.cat(T_aux, 0)
+
+        _, ind = D.sort()
+        pred = T[ind[:, 0]]
+
+        bacc = evaluation(target1, pred)
+
+        # Measure elapsed time
+        acc.update(bacc[0].data[0], h1.size(0))
+        batch_time.update(time.time() - end)
+        end = time.time()
+
+    print('Train Average Acc {acc.avg:.3f}; Avg Time x Batch {b_time.avg:.3f}'
+          .format(acc=acc, b_time=batch_time))
+
+    return acc
+
+
 def main():
 
     print('Prepare dataset')
@@ -127,6 +178,7 @@ def main():
 
     print('Create model')
     net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=64, message_size=64, n_layers=args.nlayers, target_size=data_train.getTargetSize())
+    distance = GraphEditDistance.Hd()
 
     print('Loss & optimizer')
     criterion = torch.nn.NLLLoss()
@@ -160,7 +212,7 @@ def main():
             adjust_learning_rate(optimizer, epoch)
 
             loss_train = train(train_loader, net, optimizer, args.ngpu > 0, criterion, epoch)
-            loss_valid, acc_valid = test(valid_loader, net, args.ngpu > 0, criterion, evaluation)
+            loss_valid, acc_valid = validation(valid_loader, net, args.ngpu > 0, criterion, evaluation)
 
             # Save model
             if args.save is not None:
@@ -187,7 +239,10 @@ def main():
 
     # Evaluate best model in Test
     print('Test:')
-    loss_test, acc_test = test(test_loader, net, args.ngpu > 0, criterion, evaluation)
+    loss_test, acc_test = validation(test_loader, net, args.ngpu > 0, criterion, evaluation)
+    print('Test Hausdorff distance:')
+    acc_test_hd = test(test_loader, train_loader, net, distance, args.ngpu > 0, accuracy_pred)
+
 
 def adjust_learning_rate(optimizer, epoch):
     """Updates the learning rate given an schedule and a gamma parameter.
