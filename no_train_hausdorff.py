@@ -15,7 +15,7 @@ from torch.autograd.variable import Variable
 from options import Options
 import datasets
 from LogMetric import AverageMeter
-from utils import accuracy
+from utils import accuracy_pred as accuracy
 import GraphEditDistance
 
 __author__ = "Pau Riba"
@@ -24,73 +24,94 @@ __email__ = "priba@cvc.uab.cat"
 
 def train(train_loader, net, cuda, evaluation):
     batch_time = AverageMeter()
-    data_time = AverageMeter()
-
-    end = time.time()
-
-    for i, (h1, _, _, target1) in enumerate(train_loader):
-        # Prepare input data
-        if cuda:
-            h1, target1 = h1.cuda(), target1.cuda()
-        h1, target1 = Variable(h1), Variable(target1)
-
-        for j, (h2, _, _, target2) in enumerate(train_loader):
-            # Prepare input data
-            if cuda:
-                h2, target2 = h2.cuda(), target2.cuda()
-            h2, target2 = Variable(h2), Variable(target2)
-
-            net(h1, h2)
-
-        # Measure data loading time
-        data_time.update(time.time() - end)
-
-        # Measure elapsed time
-        batch_time.update(time.time() - end)
-        end = time.time()
-
-    print('Epoch: [{0}] Average Loss {loss.avg:.3f}; Avg Time x Batch {b_time.avg:.3f}'
-          .format(epoch, loss=losses, b_time=batch_time))
-
-    return losses
-
-
-def test(test_loader, train_loader, net, cuda, criterion, evaluation):
-    batch_time = AverageMeter()
-    data_time = AverageMeter()
     acc = AverageMeter()
 
     end = time.time()
 
-    for i, (h1, _, _, target1) in enumerate(test_loader):
+    for i, (h1, _, g_size1, target1) in enumerate(train_loader):
         # Prepare input data
         if cuda:
-            h1, target1 = h1.cuda(), target1.cuda()
-        h1, target1 = Variable(h1, volatile=True), Variable(target1, volatile=True)
+            h1, g_size1, target1 = h1.cuda(), g_size1.cuda(), target1.cuda()
+        h1, target1 = Variable(h1), Variable(target1)
 
-        for j, (h2, _, _, target2) in enumerate(test_loader):
+        D_aux = []
+        T_aux = []
+        for j, (h2, _, g_size2, target2) in enumerate(train_loader):
             # Prepare input data
             if cuda:
-                h2, target2 = h2.cuda(), target2.cuda()
-            h2, target2 = Variable(h2, volatile=True), Variable(target2, volatile=True)
-            
-            net(h1, h2)
+                h2, g_size2, target2 = h2.cuda(), g_size2.cuda(), target2.cuda()
+            h2, target2 = Variable(h2), Variable(target2)
 
-        # Measure data loading time
-        data_time.update(time.time() - end)
+            d = net(h1, g_size1, h2, g_size2)
 
-        bacc = evaluation(output, target)
-        
-        acc.update(bacc[0].data[0], h.size(0))
+            # avoid classification as himself
+            if i == j:
+                d = d + torch.cat([d.max()]*d.size(0)).diag()
+
+            D_aux.append(d)
+            T_aux.append(target2)
+
+        D = torch.cat(D_aux, 1)
+        T = torch.cat(T_aux, 0)
+
+        _, ind = D.sort()
+        pred = T[ind[:,0]]
+
+        bacc = evaluation(target1, pred)
 
         # Measure elapsed time
+        acc.update(bacc[0].data[0], h1.size(0))
         batch_time.update(time.time() - end)
         end = time.time()
 
-    print('Test: Average Loss {loss.avg:.3f}; Average ACC {acc.avg:.3f}; Avg Time x Batch {b_time.avg:.3f}'
-          .format(loss=losses, acc=acc, b_time=batch_time))
+    print('Train Average Acc {acc.avg:.3f}; Avg Time x Batch {b_time.avg:.3f}'
+          .format(acc=acc, b_time=batch_time))
 
-    return losses, acc
+    return acc
+
+
+def test(test_loader, train_loader, net, cuda, evaluation):
+    batch_time = AverageMeter()
+    acc = AverageMeter()
+
+    end = time.time()
+
+    for i, (h1, _, g_size1, target1) in enumerate(test_loader):
+        # Prepare input data
+        if cuda:
+            h1, g_size1, target1 = h1.cuda(), g_size1.cuda(), target1.cuda()
+        h1, target1 = Variable(h1), Variable(target1)
+
+        D_aux = []
+        T_aux = []
+        for j, (h2, _, g_size2, target2) in enumerate(train_loader):
+            # Prepare input data
+            if cuda:
+                h2, g_size2, target2 = h2.cuda(), g_size2.cuda(), target2.cuda()
+            h2, target2 = Variable(h2), Variable(target2)
+
+            d = net(h1, g_size1, h2, g_size2)
+
+            D_aux.append(d)
+            T_aux.append(target2)
+
+        D = torch.cat(D_aux, 1)
+        T = torch.cat(T_aux, 0)
+
+        _, ind = D.sort()
+        pred = T[ind[:, 0]]
+
+        bacc = evaluation(target1, pred)
+
+        # Measure elapsed time
+        acc.update(bacc[0].data[0], h1.size(0))
+        batch_time.update(time.time() - end)
+        end = time.time()
+
+    print('Train Average Acc {acc.avg:.3f}; Avg Time x Batch {b_time.avg:.3f}'
+          .format(acc=acc, b_time=batch_time))
+
+    return acc
 
 
 def main():

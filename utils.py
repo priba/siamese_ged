@@ -47,3 +47,11 @@ def accuracy(output, target, topk=(1,)):
         res.append(correct_k.mul_(100.0 / batch_size))
     return res
 
+def accuracy_pred(pred, target):
+    """Computes the precision@k for the specified values of k"""
+    pred = pred.type_as(target)
+    correct = pred.eq(target)
+
+    correct_k = correct.float().sum(0)
+
+    return correct_k.mul_(100.0 / target.size(0))
