@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 from __future__ import print_function, division
 
 """
@@ -26,7 +26,7 @@ def load_checkpoint(model_file):
     if os.path.isfile(model_file):
         print("=> loading model '{}'".format(model_file))
         checkpoint = torch.load(model_file)
-        print("=> loaded model '{}' (epoch {})".format(model_file, checkpoint['epoch']))
+        print("=> loaded model '{}' (epoch {}, acc {})".format(model_file, checkpoint['epoch'], checkpoint['best_acc']))
         return checkpoint
     else:
         print("=> no model found at '{}'".format(model_file))

@@ -153,7 +153,7 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
         batch_time.update(time.time() - end)
         end = time.time()
 
-    print('Train Average Acc {acc.avg:.3f}; Avg Time x Batch {b_time.avg:.3f}'
+    print('Test distance: Average Acc {acc.avg:.3f}; Avg Time x Batch {b_time.avg:.3f}'
           .format(acc=acc, b_time=batch_time))
 
     return acc
@@ -216,7 +216,7 @@ def main():
 
             # Save model
             if args.save is not None:
-                if acc_valid.avg < best_acc:
+                if acc_valid.avg > best_acc:
                     best_acc = acc_valid.avg
                     save_checkpoint({'epoch': epoch + 1, 'state_dict': net.state_dict(), 'best_acc': best_acc},
                                     directory=args.save, file_name='checkpoint')

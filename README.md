@@ -5,9 +5,11 @@ Neural message passing for graph retrieval implementation.
 ## Installation
 
     $ pip install -r requirements.txt
-    $ python main_*.py
 
 ## Methodology.
+### Graph Distance
+    $ python no_train_hausdorff.py
+
 ### Learn Representation
     
     $ python train_learn_representation.py
