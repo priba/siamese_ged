@@ -132,7 +132,7 @@ def main():
                                               num_workers=args.prefetch, pin_memory=True)
 
     print('Create model')
-    net = GraphEditDistance.Hd()
+    net = GraphEditDistance.SoftHd()
 
     print('Loss & optimizer')
     evaluation = accuracy
