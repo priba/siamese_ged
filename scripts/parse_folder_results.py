@@ -20,7 +20,7 @@ if __name__ == '__main__':
     acc = []
     regex = re.compile(r"(?<=\bAverage Acc )[\w.]+")
     for f in f_list:
-        line = subprocess.check_output(['tail', '-3', f])
+        line = subprocess.check_output(['tail', '-6', f])
         match = regex.findall(line)
         acc.append(map(float, match))
     acc = np.array(acc)

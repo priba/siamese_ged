@@ -103,7 +103,7 @@ def validation(test_loader, net, cuda, criterion, evaluation):
         batch_time.update(time.time() - end)
         end = time.time()
 
-    print('Test: Average Loss {loss.avg:.3f}; Average ACC {acc.avg:.3f}; Avg Time x Batch {b_time.avg:.3f}'
+    print('Test: Average Loss {loss.avg:.3f}; Average Acc {acc.avg:.3f}; Avg Time x Batch {b_time.avg:.3f}'
           .format(loss=losses, acc=acc, b_time=batch_time))
 
     return losses, acc
@@ -173,7 +173,7 @@ def main():
                                                batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size,
                                                num_workers=args.prefetch, pin_memory=True)
     test_loader = torch.utils.data.DataLoader(data_test,
-                                              batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size,
+                                              batch_size=64, collate_fn=datasets.collate_fn_multiple_size,
                                               num_workers=args.prefetch, pin_memory=True)
 
     print('Create model')

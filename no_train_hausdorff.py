@@ -15,7 +15,7 @@ from torch.autograd.variable import Variable
 from options import Options
 import datasets
 from LogMetric import AverageMeter
-from utils import accuracy_pred as accuracy
+from utils import knn
 import GraphEditDistance
 
 __author__ = "Pau Riba"
@@ -25,6 +25,8 @@ __email__ = "priba@cvc.uab.cat"
 def train(train_loader, net, cuda, evaluation):
     batch_time = AverageMeter()
     acc = AverageMeter()
+
+    eval_k = (1, 3, 5)
 
     end = time.time()
 
@@ -54,18 +56,17 @@ def train(train_loader, net, cuda, evaluation):
         D = torch.cat(D_aux, 1)
         T = torch.cat(T_aux, 0)
 
-        _, ind = D.sort()
-        pred = T[ind[:,0]]
-
-        bacc = evaluation(target1, pred)
+        bacc = evaluation(D, target1, T, eval_k)
 
         # Measure elapsed time
-        acc.update(bacc[0].data[0], h1.size(0))
+        acc.update(bacc.data, h1.size(0))
         batch_time.update(time.time() - end)
         end = time.time()
 
-    print('Train Average Acc {acc.avg:.3f}; Avg Time x Batch {b_time.avg:.3f}'
-          .format(acc=acc, b_time=batch_time))
+    print('Train distance:')
+    for i in range(len(eval_k)):
+        print('\t* {k}-NN; Average Acc {acc:.3f}; Avg Time x Batch {b_time.avg:.3f}'.format(k=eval_k[i], acc=acc.avg[i],
+                                                                                            b_time=batch_time))
 
     return acc
 
@@ -73,6 +74,8 @@ def train(train_loader, net, cuda, evaluation):
 def test(test_loader, train_loader, net, cuda, evaluation):
     batch_time = AverageMeter()
     acc = AverageMeter()
+
+    eval_k = (1, 3, 5)
 
     end = time.time()
 
@@ -101,16 +104,17 @@ def test(test_loader, train_loader, net, cuda, evaluation):
         _, ind = D.sort()
         pred = T[ind[:, 0]]
 
-        bacc = evaluation(target1, pred)
+        bacc = evaluation(D, target1, T, eval_k)
 
         # Measure elapsed time
-        acc.update(bacc[0].data[0], h1.size(0))
+        acc.update(bacc.data, h1.size(0))
         batch_time.update(time.time() - end)
         end = time.time()
 
-    print('Train Average Acc {acc.avg:.3f}; Avg Time x Batch {b_time.avg:.3f}'
-          .format(acc=acc, b_time=batch_time))
-
+    print('Test distance:')
+    for i in range(len(eval_k)):
+        print('\t* {k}-NN; Average Acc {acc:.3f}; Avg Time x Batch {b_time.avg:.3f}'.format(k=eval_k[i], acc=acc.avg[i],
+                                                                                            b_time=batch_time))
     return acc
 
 
@@ -135,7 +139,7 @@ def main():
     net = GraphEditDistance.SoftHd()
 
     print('Loss & optimizer')
-    evaluation = accuracy
+    evaluation = knn
 
     print('Check CUDA')
     if args.cuda and args.ngpu > 1:
