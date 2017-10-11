@@ -18,7 +18,7 @@ import os
 from options import Options
 import datasets
 from LogMetric import AverageMeter, Logger
-from utils import save_checkpoint, load_checkpoint, accuracy, accuracy_pred
+from utils import save_checkpoint, load_checkpoint, accuracy, knn
 import models
 import GraphEditDistance
 
@@ -113,6 +113,8 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
     batch_time = AverageMeter()
     acc = AverageMeter()
 
+    eval_k = (1, 3, 5)
+
     end = time.time()
 
     for i, (h1, am1, g_size1, target1) in enumerate(test_loader):
@@ -141,20 +143,18 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
             T_aux.append(target2)
 
         D = torch.cat(D_aux, 1)
-        T = torch.cat(T_aux, 0)
+        train_target = torch.cat(T_aux, 0)
 
-        _, ind = D.sort()
-        pred = T[ind[:, 0]]
-
-        bacc = evaluation(target1, pred)
+        bacc = evaluation(D, target1, train_target, k=eval_k)
 
         # Measure elapsed time
-        acc.update(bacc[0].data[0], h1.size(0))
+        acc.update(bacc.data, h1.size(0))
         batch_time.update(time.time() - end)
         end = time.time()
 
-    print('Test distance: Average Acc {acc.avg:.3f}; Avg Time x Batch {b_time.avg:.3f}'
-          .format(acc=acc, b_time=batch_time))
+    print('Test distance:')
+    for i in range(len(eval_k)):
+        print('\t* {k}-NN; Average Acc {acc:.3f}; Avg Time x Batch {b_time.avg:.3f}'.format(k=eval_k[i], acc=acc.avg[i], b_time=batch_time))
 
     return acc
 
@@ -178,7 +178,7 @@ def main():
 
     print('Create model')
     net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=64, message_size=64, n_layers=args.nlayers, target_size=data_train.getTargetSize())
-    distance = GraphEditDistance.Hd()
+    distance = GraphEditDistance.SoftHd()
 
     print('Loss & optimizer')
     criterion = torch.nn.NLLLoss()
@@ -241,7 +241,7 @@ def main():
     print('Test:')
     loss_test, acc_test = validation(test_loader, net, args.ngpu > 0, criterion, evaluation)
     print('Test Hausdorff distance:')
-    acc_test_hd = test(test_loader, train_loader, net, distance, args.ngpu > 0, accuracy_pred)
+    acc_test_hd = test(test_loader, train_loader, net, distance, args.ngpu > 0, knn)
 
 
 def adjust_learning_rate(optimizer, epoch):

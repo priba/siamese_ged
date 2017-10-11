@@ -3,8 +3,8 @@
 # Run k times an experiment
 
 k=10
-epochs=100
-layers=2
+epochs=2
+layers=3
 batch_size=128
 
 for dataset in LOW MED HIGH; do

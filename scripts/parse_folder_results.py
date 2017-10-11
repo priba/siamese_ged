@@ -21,7 +21,7 @@ if __name__ == '__main__':
     regex = re.compile(r"(?<=\bAverage Acc )[\w.]+")
     for f in f_list:
         line = subprocess.check_output(['tail', '-3', f])
-        match = regex.search(line)
-        acc.append(float(match.group()))
+        match = regex.findall(line)
+        acc.append(map(float, match))
     acc = np.array(acc)
-    print('Number of tests: {}\nMean: {}\nStandard Deviation {}'.format(len(acc), acc.mean(), acc.std()))
+    print('Number of tests: {}\nMean: {}\nStandard Deviation {}'.format(len(acc), acc.mean(axis=0), acc.std(axis=0)))

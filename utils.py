@@ -32,7 +32,10 @@ def load_checkpoint(model_file):
         print("=> no model found at '{}'".format(model_file))
         raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), model_file)
 
-def accuracy(output, target, topk=(1,)):
+def accuracy(output, target):
+    return precision_at_k(output, target, topk=(1,))
+
+def precision_at_k(output, target, topk=(1,)):
     """Computes the precision@k for the specified values of k"""
     maxk = max(topk)
     batch_size = target.size(0)
@@ -47,11 +50,19 @@ def accuracy(output, target, topk=(1,)):
         res.append(correct_k.mul_(100.0 / batch_size))
     return res
 
-def accuracy_pred(pred, target):
+def knn(D, target, train_target, k=(1,)):
     """Computes the precision@k for the specified values of k"""
+    maxk=max(k)
+    batch_size = target.size(0)
+    _, pred = D.topk(maxk, dim=1, largest=False, sorted=True)
+    pred = train_target[pred.view(-1)].view(batch_size, -1)
     pred = pred.type_as(target)
-    correct = pred.eq(target)
 
-    correct_k = correct.float().sum(0)
+    res = []
+    for ki in k:
+        pred_k, _ = pred[:,:ki].mode(dim=1)
+        pred_k = pred_k.squeeze()
+        correct_k = pred_k.eq(target).float().sum()
 
-    return correct_k.mul_(100.0 / target.size(0))
+        res.append(correct_k.mul_(100.0 / batch_size))
+    return torch.cat(res)
