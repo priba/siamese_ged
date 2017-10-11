@@ -163,7 +163,7 @@ def main():
 
     print('Prepare dataset')
     # Dataset
-    data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path)
+    data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.normalize)
 
     # Data Loader
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size,
@@ -178,7 +178,11 @@ def main():
 
     print('Create model')
     net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=64, message_size=64, n_layers=args.nlayers, target_size=data_train.getTargetSize())
-    distance = GraphEditDistance.SoftHd()
+
+    if args.distance=='SoftHd':
+        distance = GraphEditDistance.SoftHd()
+    else:
+        distance = GraphEditDistance.Hd()
 
     print('Loss & optimizer')
     criterion = torch.nn.NLLLoss()

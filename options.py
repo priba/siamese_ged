@@ -21,8 +21,10 @@ class Options():
                             help='Choose between letters.')
         # Model parameters
         parser.add_argument('--nlayers', type=int, default=2, help='Message passing + Update layers.')
+        parser.add_argument('--distance', type=str, default='SoftHd', help='Graph distance used.', choices=['Hd', 'SoftHd'])
+        parser.add_argument('--normalize', action='store_true', default=False, help='Normalize input data.')
         # Optimization options
-        parser.add_argument('--epochs', '-e', type=int, default=100, help='Number of epochs to train.')
+        parser.add_argument('--epochs', '-e', type=int, default=1, help='Number of epochs to train.')
         parser.add_argument('--batch_size', '-b', type=int, default=64, help='Batch size.')
         parser.add_argument('--learning_rate', '-lr', type=float, default=1e-2, help='The Learning Rate.')
         parser.add_argument('--momentum', '-m', type=float, default=0.9, help='Momentum.')

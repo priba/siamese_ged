@@ -3,13 +3,14 @@ import torch
 import torch.utils.data as data
 import xml.etree.ElementTree as ET
 import numpy as np
+from data_utils import normalize
 
 __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
 
 
 class Letters(data.Dataset):
-    def __init__(self, root_path, file_list):
+    def __init__(self, root_path, file_list, norm=False):
         self.root = root_path
         self.file_list = file_list
 
@@ -18,12 +19,16 @@ class Letters(data.Dataset):
         self.unique_labels = np.unique(self.labels)
         self.labels = [np.where(target == self.unique_labels)[0][0] for target in self.labels]
 
+        self.norm = norm
+
     def __getitem__(self, index):
         node_labels, am = self.create_graph_letter(self.root + self.graphs[index])
         target = self.labels[index]
         node_labels = torch.FloatTensor(node_labels)
         am = torch.FloatTensor(am)
         am = am.unsqueeze(2) # Generalize to graphs with n features in the edges
+        if self.norm:
+            node_labels = normalize(node_labels)
         return node_labels, am, target
 
     def __len__(self):
