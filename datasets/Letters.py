@@ -3,14 +3,14 @@ import torch
 import torch.utils.data as data
 import xml.etree.ElementTree as ET
 import numpy as np
-from data_utils import normalize
+import data_utils as du
 
 __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
 
 
 class Letters(data.Dataset):
-    def __init__(self, root_path, file_list, norm=False):
+    def __init__(self, root_path, file_list, representation='adj'):
         self.root = root_path
         self.file_list = file_list
 
@@ -19,16 +19,13 @@ class Letters(data.Dataset):
         self.unique_labels = np.unique(self.labels)
         self.labels = [np.where(target == self.unique_labels)[0][0] for target in self.labels]
 
-        self.norm = norm
+        self.representation = representation
 
     def __getitem__(self, index):
         node_labels, am = self.create_graph_letter(self.root + self.graphs[index])
         target = self.labels[index]
         node_labels = torch.FloatTensor(node_labels)
         am = torch.FloatTensor(am)
-        am = am.unsqueeze(2) # Generalize to graphs with n features in the edges
-        if self.norm:
-            node_labels = normalize(node_labels)
         return node_labels, am, target
 
     def __len__(self):
@@ -67,12 +64,24 @@ class Letters(data.Dataset):
         node_label = np.array(node_label)
         node_id = np.array(node_id)
 
-        am = np.zeros((len(node_id), len(node_id)))
+        if self.representation=='adj':
+            am = np.zeros((len(node_id), len(node_id), 1))
+        else:
+            am = np.zeros((len(node_id), len(node_id), 2))
 
         for edge in root_gxl.iter('edge'):
             s = np.where(np.array(node_id)==edge.get('from'))[0][0]
             t = np.where(np.array(node_id)==edge.get('to'))[0][0]
-            am[s,t] = 1
-            am[t,s] = 1
+
+            dist = du.distance(node_label[s], node_label[t])
+            angle = du.angle(node_label[s], node_label[t])
+            if self.representation=='adj'
+                am[s,t,:] = 1
+                am[t,s,:] = 1
+            else:
+                dist = du.distance(node_label[s], node_label[t])
+                am[s,t,:] = [dist, du.angle(node_label[s], node_label[t])]
+                am[t,s,:] = [dist, du.angle(node_label[t], node_label[s])]
 
         return node_label, am
+

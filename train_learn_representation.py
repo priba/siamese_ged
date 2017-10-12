@@ -163,7 +163,7 @@ def main():
 
     print('Prepare dataset')
     # Dataset
-    data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.normalize)
+    data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation)
 
     # Data Loader
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size,

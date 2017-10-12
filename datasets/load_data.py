@@ -14,17 +14,17 @@ __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
 
 
-def load_data(dataset, data_path, norm):
+def load_data(dataset, data_path, representation):
     if dataset == 'letters':
         return load_letters(data_path, norm)
     raise NameError(dataset + ' not implemented!')
 
 
-def load_letters(data_path, norm=False):
+def load_letters(data_path, representation='adj'):
     # Get data for train, validation and test
-    data_train = datasets.Letters(data_path, 'train.cxl', norm)
-    data_valid = datasets.Letters(data_path, 'validation.cxl', norm)
-    data_test = datasets.Letters(data_path, 'test.cxl', norm)
+    data_train = datasets.Letters(data_path, 'train.cxl', representation)
+    data_valid = datasets.Letters(data_path, 'validation.cxl', representation)
+    data_test = datasets.Letters(data_path, 'test.cxl', representation)
 
     return data_train, data_valid, data_test
 
