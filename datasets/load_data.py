@@ -16,7 +16,7 @@ __email__ = "priba@cvc.uab.cat"
 
 def load_data(dataset, data_path, representation):
     if dataset == 'letters':
-        return load_letters(data_path, norm)
+        return load_letters(data_path, representation)
     raise NameError(dataset + ' not implemented!')
 
 

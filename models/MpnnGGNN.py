@@ -38,11 +38,14 @@ class MpnnGGNN(nn.Module):
             Classification | [Regression (default)]. If classification, LogSoftmax layer is applied to the output vector.
     """
 
-    def __init__(self, in_size, e, hidden_state_size, message_size, n_layers, target_size, out_type='classification'):
+    def __init__(self, in_size, e, hidden_state_size, message_size, n_layers, target_size, discrete_edge=False, out_type='classification'):
         super(MpnnGGNN, self).__init__()
 
         # Define message
-        self.m = MessageFunction.Ggnn(args={'e_label': e, 'in': hidden_state_size, 'out': message_size})
+        if discrete_edge:
+            self.m = MessageFunction.Ggnn(args={'e_label': e, 'in': hidden_state_size, 'out': message_size})
+        else:
+            self.m = MessageFunction.EdgeNetwork(args={'e_size': e, 'in': hidden_state_size, 'out': message_size})
 
         # Define Update
         self.u = UpdateFunction.Ggnn(args={'in_m': message_size, 'out': hidden_state_size})
@@ -71,12 +74,11 @@ class MpnnGGNN(nn.Module):
         node_mask = Variable(node_mask.unsqueeze(-1))
 
         # Create a mask for edges
-        edge_mask = (am.sum(-1,keepdim=True) > 0).float()
+        edge_mask = ((am!=0).float().sum(-1,keepdim=True) > 0).float()
 
+        e_aux = am.view(-1, am.size(3))
         # Layer
         for t in range(0, self.n_layers):
-            e_aux = am.view(-1, am.size(3))
-
             h_aux = h_t.view(-1, h_t.size(2))
 
             m = self.m(h_t, h_aux, e_aux)

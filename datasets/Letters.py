@@ -73,15 +73,13 @@ class Letters(data.Dataset):
             s = np.where(np.array(node_id)==edge.get('from'))[0][0]
             t = np.where(np.array(node_id)==edge.get('to'))[0][0]
 
-            dist = du.distance(node_label[s], node_label[t])
-            angle = du.angle(node_label[s], node_label[t])
-            if self.representation=='adj'
+            if self.representation=='adj':
                 am[s,t,:] = 1
                 am[t,s,:] = 1
             else:
                 dist = du.distance(node_label[s], node_label[t])
-                am[s,t,:] = [dist, du.angle(node_label[s], node_label[t])]
-                am[t,s,:] = [dist, du.angle(node_label[t], node_label[s])]
+                am[s,t,:] = [dist, du.angle_between(node_label[s], node_label[t])]
+                am[t,s,:] = [dist, du.angle_between(node_label[t], node_label[s])]
 
         return node_label, am
 

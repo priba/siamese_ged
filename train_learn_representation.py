@@ -121,7 +121,7 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
         # Prepare input data
         if cuda:
             h1, am1, g_size1, target1 = h1.cuda(), am1.cuda(), g_size1.cuda(), target1.cuda()
-        h1, am1, target1 = Variable(h1), Variable(am1), Variable(target1)
+        h1, am1, target1 = Variable(h1, volatile=True), Variable(am1, volatile=True), Variable(target1, volatile=True)
 
         # Compute features
         output1 = net(h1, am1, g_size1, output='nodes')
@@ -132,7 +132,7 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
             # Prepare input data
             if cuda:
                 h2, am2, g_size2, target2 = h2.cuda(), am2.cuda(), g_size2.cuda(), target2.cuda()
-            h2, am2, target2 = Variable(h2), Variable(am2), Variable(target2)
+            h2, am2, target2 = Variable(h2, volatile=True), Variable(am2, volatile=True), Variable(target2, volatile=True)
 
             # Compute features
             output2 = net(h2, am2, g_size2, output='nodes')
@@ -177,7 +177,12 @@ def main():
                                               num_workers=args.prefetch, pin_memory=True)
 
     print('Create model')
-    net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=64, message_size=64, n_layers=args.nlayers, target_size=data_train.getTargetSize())
+    if args.representation!='feat':
+        print('\t* Discrete Edges')
+        net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=True, target_size=data_train.getTargetSize())
+    else:
+        print('\t* Feature Edges')
+        net = models.MpnnGGNN(in_size=2, e=2, hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=False, target_size=data_train.getTargetSize())
 
     if args.distance=='SoftHd':
         distance = GraphEditDistance.SoftHd()
