@@ -32,8 +32,10 @@ def load_checkpoint(model_file):
         print("=> no model found at '{}'".format(model_file))
         raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), model_file)
 
+
 def accuracy(output, target):
     return precision_at_k(output, target, topk=(1,))
+
 
 def precision_at_k(output, target, topk=(1,)):
     """Computes the precision@k for the specified values of k"""
@@ -49,6 +51,16 @@ def precision_at_k(output, target, topk=(1,)):
         correct_k = correct[:k].view(-1).float().sum(0)
         res.append(correct_k.mul_(100.0 / batch_size))
     return res
+
+
+def siamese_accuracy(output, target):
+    batch_size = target.size(0)
+
+    pred=(output > 0.5).float()
+    correct = pred.eq(target).float()
+    acc= 100.0*correct.sum()/batch_size
+    return acc
+
 
 def knn(D, target, train_target, k=(1,)):
     """Computes the precision@k for the specified values of k"""
