@@ -64,7 +64,7 @@ class LettersSiamese(data.Dataset):
         node_labels2 = torch.FloatTensor(node_labels2)
         am2 = torch.FloatTensor(am2)
 
-        target = torch.FloatTensor([0.0]) if target1 == target2 else torch.FloatTensor([1.0])
+        target = torch.FloatTensor([1.0]) if target1 == target2 else torch.FloatTensor([0.0])
 
         return node_labels1, am1, node_labels2, am2, target
 

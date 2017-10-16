@@ -141,7 +141,7 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
         h1, am1, target1 = Variable(h1, volatile=True), Variable(am1, volatile=True), Variable(target1, volatile=True)
 
         # Compute features
-        output1 = net(h1, am1, g_size1, output='nodes')
+        output1 = net(h1, am1, g_size1)
 
         D_aux = []
         T_aux = []
@@ -152,12 +152,13 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
             h2, am2, target2 = Variable(h2, volatile=True), Variable(am2, volatile=True), Variable(target2, volatile=True)
 
             # Compute features
-            output2 = net(h2, am2, g_size2, output='nodes')
+            output2 = net(h2, am2, g_size2)
 
-            output = output1 - output2
-            output = output.pow(2).sum(1).sqrt()
+            twoab = 2* output1.mm(output2.t())
+            dist = (output1*output1).sum(1, keepdim=True).expand_as(twoab)+(output2*output2).sum(1, keepdim=True).t().expand_as(twoab)-twoab
+            dist = dist.sqrt()
 
-            D_aux.append(output)
+            D_aux.append(dist)
             T_aux.append(target2)
 
         D = torch.cat(D_aux, 1)
@@ -266,16 +267,16 @@ def main():
 
     # Evaluate best model in Test
     print('Test:')
-    loss_test, acc_test = validation(test_loader, net, args.ngpu > 0, criterion, evaluation)
+    #loss_test, acc_test = validation(test_loader, net, args.ngpu > 0, criterion, evaluation)
 
     # Dataset not siamese for test
     data_train, _, data_test = datasets.load_data(args.dataset, args.data_path, args.representation)
     # Data Loader
-    train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size_siamese,
+    train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size,
                                                batch_size=args.batch_size,
                                                num_workers=args.prefetch, pin_memory=True)
     test_loader = torch.utils.data.DataLoader(data_test,
-                                              batch_size=64, collate_fn=datasets.collate_fn_multiple_size_siamese,
+                                              batch_size=64, collate_fn=datasets.collate_fn_multiple_size,
                                               num_workers=args.prefetch, pin_memory=True)
     print('Test k-NN classifier')
     acc_test_hd = test(test_loader, train_loader, net, distance, args.ngpu > 0, knn)
