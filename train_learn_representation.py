@@ -185,9 +185,9 @@ def main():
         net = models.MpnnGGNN(in_size=2, e=2, hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=False, target_size=data_train.getTargetSize())
 
     if args.distance=='SoftHd':
-        distance = GraphEditDistance.SoftHd()
+        distance = GraphEditDistance.AllPairsSoftHd()
     else:
-        distance = GraphEditDistance.Hd()
+        distance = GraphEditDistance.AllPairsHd()
 
     print('Loss & optimizer')
     criterion = torch.nn.NLLLoss()

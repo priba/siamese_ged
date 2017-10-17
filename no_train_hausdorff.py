@@ -137,9 +137,9 @@ def main():
 
     print('Create model')
     if args.distance=='SoftHd':
-        net = GraphEditDistance.SoftHd()
+        net = GraphEditDistance.AllPairsSoftHd()
     else:
-        net = GraphEditDistance.Hd()
+        net = GraphEditDistance.AllPairsHd()
 
     print('Loss & optimizer')
     evaluation = knn

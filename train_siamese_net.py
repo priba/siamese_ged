@@ -20,7 +20,6 @@ import datasets
 from LogMetric import AverageMeter, Logger
 from utils import save_checkpoint, load_checkpoint, siamese_accuracy, knn
 import models
-import GraphEditDistance
 import LossFunction
 
 __author__ = "Pau Riba"
@@ -182,7 +181,7 @@ def main():
 
     print('Prepare dataset')
     # Dataset
-    data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization, iamese=True)
+    data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization, siamese=True)
 
     # Data Loader
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size_siamese,
