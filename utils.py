@@ -7,8 +7,8 @@ Pytorch useful tools.
 
 import torch
 import os
-import shutil
 import errno
+import numpy as np
 
 __author__ = 'Pau Riba'
 __email__ = 'priba@cvc.uab.cat'
@@ -72,9 +72,37 @@ def knn(D, target, train_target, k=(1,)):
 
     res = []
     for ki in k:
-        pred_k, _ = pred[:,:ki].mode(dim=1)
-        pred_k = pred_k.squeeze()
-        correct_k = pred_k.eq(target).float().sum()
+        pred_k = nn_prediction(pred[:,:ki])
 
-        res.append(correct_k.mul_(100.0 / batch_size))
-    return torch.cat(res)
+        pred_k = pred_k.squeeze()
+        correct_k = pred_k.eq(target.data).float().sum()
+
+        res.append(correct_k*(100.0 / batch_size))
+    return torch.FloatTensor(res)
+
+def nn_prediction(pred, axis=1):
+    scores = np.unique(np.ravel(pred.data.cpu().numpy()))
+
+    testshape = list(pred.size())
+    testshape[axis] = 1
+
+    mostfrequent = torch.zeros(testshape)
+    mostindex = torch.zeros(testshape).long()
+    oldcounts = torch.zeros(testshape)
+
+    if pred.is_cuda:
+        mostfrequent = mostfrequent.cuda()
+        mostindex = mostindex.cuda()
+        oldcounts = oldcounts.cuda()
+
+    for score in scores:
+        template = (pred == score).data
+        counts = template.float().sum(axis, keepdim=True)
+        _, ind = template.float().max(1)
+
+        mostfrequent[(counts > oldcounts) | ((counts==oldcounts) & (ind.unsqueeze(1) < mostindex))] = score
+        mostindex[(counts > oldcounts) | ((counts==oldcounts) & (ind.unsqueeze(1) < mostindex))] = ind
+
+        oldcounts,_ = torch.max(torch.cat([oldcounts, counts],1),1, keepdim=True)
+
+    return mostfrequent.long()

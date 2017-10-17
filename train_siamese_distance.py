@@ -167,7 +167,7 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
         bacc = evaluation(D, target1, train_target, k=eval_k)
 
         # Measure elapsed time
-        acc.update(bacc.data, h1.size(0))
+        acc.update(bacc, h1.size(0))
         batch_time.update(time.time() - end)
         end = time.time()
 
@@ -198,10 +198,10 @@ def main():
     print('Create model')
     if args.representation!='feat':
         print('\t* Discrete Edges')
-        net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=True, target_size=data_train.getTargetSize())
+        net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=True, out_type='regression', target_size=data_train.getTargetSize())
     else:
         print('\t* Feature Edges')
-        net = models.MpnnGGNN(in_size=2, e=2, hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=False, target_size=data_train.getTargetSize())
+        net = models.MpnnGGNN(in_size=2, e=2, hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=False, out_type='regression', target_size=data_train.getTargetSize())
 
     if args.distance=='SoftHd':
         distance = GraphEditDistance.SoftHd()
