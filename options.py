@@ -23,6 +23,7 @@ class Options():
         parser.add_argument('--nlayers', type=int, default=2, help='Message passing + Update layers.')
         parser.add_argument('--distance', type=str, default='SoftHd', help='Graph distance used.', choices=['Hd', 'SoftHd'])
         parser.add_argument('--representation', type=str, default='adj', help='Adjacency matrix representation.', choices=['adj', 'feat'])
+        parser.add_argument('--normalization', action='store_true', default=False, help='Normalize data nodes.')
         # Optimization options
         parser.add_argument('--epochs', '-e', type=int, default=1, help='Number of epochs to train.')
         parser.add_argument('--batch_size', '-b', type=int, default=64, help='Batch size.')

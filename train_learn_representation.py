@@ -137,7 +137,7 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
             # Compute features
             output2 = net(h2, am2, g_size2, output='nodes')
 
-            d = distance(output1, g_size1, output2, g_size2)
+            d = distance(output1, am1, g_size1, output2, am2, g_size2)
 
             D_aux.append(d)
             T_aux.append(target2)
@@ -163,7 +163,7 @@ def main():
 
     print('Prepare dataset')
     # Dataset
-    data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation)
+    data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization)
 
     # Data Loader
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size,

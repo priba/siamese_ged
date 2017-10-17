@@ -80,6 +80,7 @@ def knn(D, target, train_target, k=(1,)):
         res.append(correct_k*(100.0 / batch_size))
     return torch.FloatTensor(res)
 
+
 def nn_prediction(pred, axis=1):
     scores = np.unique(np.ravel(pred.data.cpu().numpy()))
 
@@ -98,11 +99,17 @@ def nn_prediction(pred, axis=1):
     for score in scores:
         template = (pred == score).data
         counts = template.float().sum(axis, keepdim=True)
-        _, ind = template.float().max(1)
 
-        mostfrequent[(counts > oldcounts) | ((counts==oldcounts) & (ind.unsqueeze(1) < mostindex))] = score
-        mostindex[(counts > oldcounts) | ((counts==oldcounts) & (ind.unsqueeze(1) < mostindex))] = ind
+        ind = torch.arange(0, pred.size(1)).unsqueeze(0).expand_as(template)
+        if pred.is_cuda:
+            ind = ind.cuda()
+        ind = ind*template.float() + pred.size(1)*(1-template.float())
+        _, ind = ind.min(1,keepdim=True)
+
+        mostfrequent[(counts > oldcounts) | ((counts==oldcounts) & (ind < mostindex))] = score
+        mostindex[(counts > oldcounts) | ((counts==oldcounts) & (ind < mostindex))] = ind[(counts > oldcounts) | ((counts==oldcounts) & (ind < mostindex))]
 
         oldcounts,_ = torch.max(torch.cat([oldcounts, counts],1),1, keepdim=True)
 
     return mostfrequent.long()
+

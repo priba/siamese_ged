@@ -16,6 +16,10 @@ def normalize(data, dim=0):
     std_data = data.std(dim)
     return (data-mean_data.expand_as(data))/std_data.expand_as(data)
 
+def normalize_mean(data, dim=0):
+    mean_data = data.mean(dim)
+    return (data-mean_data.expand_as(data))
+
 
 def distance(p1, p2):
     "Computes the L2 distance between p1 and p2"

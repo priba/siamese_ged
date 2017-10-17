@@ -30,21 +30,21 @@ def train(train_loader, net, cuda, evaluation):
 
     end = time.time()
 
-    for i, (h1, _, g_size1, target1) in enumerate(train_loader):
+    for i, (h1, am1, g_size1, target1) in enumerate(train_loader):
         # Prepare input data
         if cuda:
-            h1, g_size1, target1 = h1.cuda(), g_size1.cuda(), target1.cuda()
-        h1, target1 = Variable(h1), Variable(target1)
+            h1, am1, g_size1, target1 = h1.cuda(), am1.cuda(), g_size1.cuda(), target1.cuda()
+        h1, am1, target1 = Variable(h1), Variable(am1), Variable(target1)
 
         D_aux = []
         T_aux = []
-        for j, (h2, _, g_size2, target2) in enumerate(train_loader):
+        for j, (h2, am2, g_size2, target2) in enumerate(train_loader):
             # Prepare input data
             if cuda:
-                h2, g_size2, target2 = h2.cuda(), g_size2.cuda(), target2.cuda()
-            h2, target2 = Variable(h2), Variable(target2)
+                h2, am2, g_size2, target2 = h2.cuda(), am2.cuda(), g_size2.cuda(), target2.cuda()
+            h2, am2, target2 = Variable(h2), Variable(am2), Variable(target2)
 
-            d = net(h1, g_size1, h2, g_size2)
+            d = net(h1, am1, g_size1, h2, am2, g_size2)
 
             # avoid classification as himself
             if i == j:
@@ -59,7 +59,7 @@ def train(train_loader, net, cuda, evaluation):
         bacc = evaluation(D, target1, T, eval_k)
 
         # Measure elapsed time
-        acc.update(bacc.data, h1.size(0))
+        acc.update(bacc, h1.size(0))
         batch_time.update(time.time() - end)
         end = time.time()
 
@@ -79,21 +79,21 @@ def test(test_loader, train_loader, net, cuda, evaluation):
 
     end = time.time()
 
-    for i, (h1, _, g_size1, target1) in enumerate(test_loader):
+    for i, (h1, am1, g_size1, target1) in enumerate(test_loader):
         # Prepare input data
         if cuda:
-            h1, g_size1, target1 = h1.cuda(), g_size1.cuda(), target1.cuda()
-        h1, target1 = Variable(h1), Variable(target1)
+            h1, am1, g_size1, target1 = h1.cuda(), am1.cuda(), g_size1.cuda(), target1.cuda()
+        h1, am1, target1 = Variable(h1), Variable(am1), Variable(target1)
 
         D_aux = []
         T_aux = []
-        for j, (h2, _, g_size2, target2) in enumerate(train_loader):
+        for j, (h2, am2, g_size2, target2) in enumerate(train_loader):
             # Prepare input data
             if cuda:
-                h2, g_size2, target2 = h2.cuda(), g_size2.cuda(), target2.cuda()
-            h2, target2 = Variable(h2), Variable(target2)
+                h2, am2, g_size2, target2 = h2.cuda(), am2.cuda(), g_size2.cuda(), target2.cuda()
+            h2, am2, target2 = Variable(h2), Variable(am2), Variable(target2)
 
-            d = net(h1, g_size1, h2, g_size2)
+            d = net(h1, am1, g_size1, h2, am2, g_size2)
 
             D_aux.append(d)
             T_aux.append(target2)
@@ -107,7 +107,7 @@ def test(test_loader, train_loader, net, cuda, evaluation):
         bacc = evaluation(D, target1, T, eval_k)
 
         # Measure elapsed time
-        acc.update(bacc.data, h1.size(0))
+        acc.update(bacc, h1.size(0))
         batch_time.update(time.time() - end)
         end = time.time()
 
@@ -122,7 +122,7 @@ def main():
 
     print('Prepare dataset')
     # Dataset
-    data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation)
+    data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization)
 
     # Data Loader
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size,
@@ -136,7 +136,10 @@ def main():
                                               num_workers=args.prefetch, pin_memory=True)
 
     print('Create model')
-    net = GraphEditDistance.SoftHd()
+    if args.distance=='SoftHd':
+        net = GraphEditDistance.SoftHd()
+    else:
+        net = GraphEditDistance.Hd()
 
     print('Loss & optimizer')
     evaluation = knn

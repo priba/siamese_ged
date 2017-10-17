@@ -14,29 +14,29 @@ __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
 
 
-def load_data(dataset, data_path, representation, siamese=False):
+def load_data(dataset, data_path, representation, normalization, siamese=False):
     if dataset == 'letters':
         if siamese:
-            return load_letters_siamese(data_path, representation)
+            return load_letters_siamese(data_path, representation, normalization)
         else:
-            return load_letters(data_path, representation)
+            return load_letters(data_path, representation, normalization)
     raise NameError(dataset + ' not implemented!')
 
 
-def load_letters(data_path, representation='adj'):
+def load_letters(data_path, representation='adj', normalization=False):
     # Get data for train, validation and test
-    data_train = datasets.Letters(data_path, 'train.cxl', representation)
-    data_valid = datasets.Letters(data_path, 'validation.cxl', representation)
-    data_test = datasets.Letters(data_path, 'test.cxl', representation)
+    data_train = datasets.Letters(data_path, 'train.cxl', representation, normalization)
+    data_valid = datasets.Letters(data_path, 'validation.cxl', representation, normalization)
+    data_test = datasets.Letters(data_path, 'test.cxl', representation, normalization)
 
     return data_train, data_valid, data_test
 
 
-def load_letters_siamese(data_path, representation='adj'):
+def load_letters_siamese(data_path, representation='adj', normalization=False):
     # Get data for train, validation and test
-    data_train = datasets.LettersSiamese(data_path, 'train.cxl', representation)
-    data_valid = datasets.LettersSiamese(data_path, 'validation.cxl', representation)
-    data_test = datasets.LettersSiamese(data_path, 'test.cxl', representation)
+    data_train = datasets.LettersSiamese(data_path, 'train.cxl', representation, normalization)
+    data_valid = datasets.LettersSiamese(data_path, 'validation.cxl', representation, normalization)
+    data_test = datasets.LettersSiamese(data_path, 'test.cxl', representation, normalization)
 
     return data_train, data_valid, data_test
 

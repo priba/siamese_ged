@@ -27,7 +27,7 @@ __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
 
 
-def train(train_loader, net, optimizer, cuda, criterion, epoch):
+def train(train_loader, net, distance, optimizer, cuda, criterion, epoch):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
@@ -53,11 +53,10 @@ def train(train_loader, net, optimizer, cuda, criterion, epoch):
         optimizer.zero_grad()
 
         # Compute features
-        output1 = net(h1, am1, g_size1)
-        output2 = net(h2, am2, g_size2)
+        output1 = net(h1, am1, g_size1, output='nodes')
+        output2 = net(h2, am2, g_size2, output='nodes')
         
-        output = output1 - output2
-        output = output.pow(2).sum(1).sqrt()
+        output = distance(output1, am1, g_size1, output2, am2, g_size2)
 
         loss = criterion(output, target)
 
@@ -78,7 +77,7 @@ def train(train_loader, net, optimizer, cuda, criterion, epoch):
     return losses
 
 
-def validation(test_loader, net, cuda, criterion, evaluation):
+def validation(test_loader, net, distance, cuda, criterion, evaluation):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
@@ -106,8 +105,7 @@ def validation(test_loader, net, cuda, criterion, evaluation):
         output1 = net(h1, am1, g_size1)
         output2 = net(h2, am2, g_size2)
         
-        output = output1 - output2
-        output = output.pow(2).sum(1).sqrt()
+        output = distance(output1, am1, g_size1, output2, am2, g_size2)
 
         loss = criterion(output, target)
         bacc = evaluation(output, target)
@@ -154,9 +152,7 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
             # Compute features
             output2 = net(h2, am2, g_size2)
 
-            twoab = 2* output1.mm(output2.t())
-            dist = (output1*output1).sum(1, keepdim=True).expand_as(twoab)+(output2*output2).sum(1, keepdim=True).t().expand_as(twoab)-twoab
-            dist = dist.sqrt()
+            dist = distance(output1, am1, g_size1, output2, am2, g_size2)
 
             D_aux.append(dist)
             T_aux.append(target2)
@@ -182,7 +178,7 @@ def main():
 
     print('Prepare dataset')
     # Dataset
-    data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, siamese=True)
+    data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization, siamese=True)
 
     # Data Loader
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size_siamese,
@@ -239,8 +235,8 @@ def main():
             # update the optimizer learning rate
             adjust_learning_rate(optimizer, epoch)
 
-            loss_train = train(train_loader, net, optimizer, args.ngpu > 0, criterion, epoch)
-            loss_valid, acc_valid = validation(valid_loader, net, args.ngpu > 0, criterion, evaluation)
+            loss_train = train(train_loader, net, distance, optimizer, args.ngpu > 0, criterion, epoch)
+            loss_valid, acc_valid = validation(valid_loader, net, distance, args.ngpu > 0, criterion, evaluation)
 
             # Save model
             if args.save is not None:
@@ -267,10 +263,10 @@ def main():
 
     # Evaluate best model in Test
     print('Test:')
-    #loss_test, acc_test = validation(test_loader, net, args.ngpu > 0, criterion, evaluation)
+    loss_test, acc_test = validation(test_loader, net, distance, args.ngpu > 0, criterion, evaluation)
 
     # Dataset not siamese for test
-    data_train, _, data_test = datasets.load_data(args.dataset, args.data_path, args.representation)
+    data_train, _, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization)
     # Data Loader
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size,
                                                batch_size=args.batch_size,

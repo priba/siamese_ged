@@ -11,7 +11,7 @@ __email__ = "priba@cvc.uab.cat"
 
 
 class Letters(data.Dataset):
-    def __init__(self, root_path, file_list, representation='adj'):
+    def __init__(self, root_path, file_list, representation='adj', normalization=False):
         self.root = root_path
         self.file_list = file_list
 
@@ -21,11 +21,16 @@ class Letters(data.Dataset):
         self.labels = [np.where(target == self.unique_labels)[0][0] for target in self.labels]
 
         self.representation = representation
+        self.normalization = normalization
 
     def __getitem__(self, index):
         node_labels, am = create_graph_letter(self.root + self.graphs[index], representation=self.representation)
         target = self.labels[index]
         node_labels = torch.FloatTensor(node_labels)
+
+        if self.normalization:
+            node_labels = du.normalize_mean(node_labels)
+
         am = torch.FloatTensor(am)
         return node_labels, am, target
 
@@ -37,7 +42,7 @@ class Letters(data.Dataset):
 
 
 class LettersSiamese(data.Dataset):
-    def __init__(self, root_path, file_list, representation='adj'):
+    def __init__(self, root_path, file_list, representation='adj', normalization=False):
         self.root = root_path
         self.file_list = file_list
 
@@ -48,6 +53,7 @@ class LettersSiamese(data.Dataset):
 
         self.pairs = list(itertools.combinations(range(len(self.labels)), 2))
         self.representation = representation
+        self.normalization = normalization
 
     def __getitem__(self, index):
         ind = self.pairs[index]
@@ -58,11 +64,17 @@ class LettersSiamese(data.Dataset):
         node_labels1 = torch.FloatTensor(node_labels1)
         am1 = torch.FloatTensor(am1)
 
+        if self.normalization:
+            node_labels1 = du.normalize_mean(node_labels1)
+
         # Graph 2
         node_labels2, am2 = create_graph_letter(self.root + self.graphs[ind[1]], representation=self.representation)
         target2 = self.labels[ind[1]]
         node_labels2 = torch.FloatTensor(node_labels2)
         am2 = torch.FloatTensor(am2)
+
+        if self.normalization:
+            node_labels2 = du.normalize_mean(node_labels2)
 
         target = torch.FloatTensor([1.0]) if target1 == target2 else torch.FloatTensor([0.0])
 
