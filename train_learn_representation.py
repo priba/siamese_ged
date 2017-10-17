@@ -148,7 +148,7 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
         bacc = evaluation(D, target1, train_target, k=eval_k)
 
         # Measure elapsed time
-        acc.update(bacc.data, h1.size(0))
+        acc.update(bacc, h1.size(0))
         batch_time.update(time.time() - end)
         end = time.time()
 

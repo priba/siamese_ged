@@ -28,7 +28,7 @@ class SoftHd(nn.Module):
         super(SoftHd, self).__init__()
         self.args = args
     
-    def forward(self, v1, sz1, v2, sz2):
+    def forward(self, v1, am1, sz1, v2, am2, sz2):
 
         byy = v2.unsqueeze(1).unsqueeze(1).expand((v2.size(0), v1.size(0), v1.size(1), v2.size(1), v2.size(2))).transpose(2,3).transpose(0,1)
         bxx = v1.unsqueeze(1).unsqueeze(1).expand_as(byy)
