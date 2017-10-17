@@ -30,41 +30,39 @@ class Hd(nn.Module):
     
     def forward(self, v1, am1, sz1, v2, am2, sz2):
 
-        byy = v2.unsqueeze(1).unsqueeze(1).expand((v2.size(0), v1.size(0), v1.size(1), v2.size(1), v2.size(2))).transpose(2,3).transpose(0,1)
-        bxx = v1.unsqueeze(1).unsqueeze(1).expand_as(byy)
+        byy = v2.unsqueeze(1).expand((v2.size(0), v1.size(1), v2.size(1), v2.size(2))).transpose(1,2)
+        bxx = v1.unsqueeze(1).expand_as(byy)
 
-        bdxy = torch.sqrt(torch.sum((bxx-byy)**2, 4))
+        bdxy = torch.sqrt(torch.sum((bxx-byy)**2, 3))
 
         # Create a mask for nodes
-        node_mask2 = torch.arange(0, bdxy.size(2)).unsqueeze(0).unsqueeze(0).unsqueeze(-1).expand(bdxy.size(0),
+        node_mask2 = torch.arange(0, bdxy.size(1)).unsqueeze(0).unsqueeze(-1).expand(bdxy.size(0),
                                                                                                   bdxy.size(1),
-                                                                                                  bdxy.size(2),
-                                                                                                  bdxy.size(3)).long()
-        node_mask1 = torch.arange(0, bdxy.size(3)).unsqueeze(0).unsqueeze(0).unsqueeze(0).expand(bdxy.size(0),
+                                                                                                  bdxy.size(2)).long()
+        node_mask1 = torch.arange(0, bdxy.size(2)).unsqueeze(0).unsqueeze(0).expand(bdxy.size(0),
                                                                                                  bdxy.size(1),
-                                                                                                 bdxy.size(2),
-                                                                                                 bdxy.size(3)).long()
+                                                                                                 bdxy.size(2)).long()
 
         if v1.is_cuda:
             node_mask1 = node_mask1.cuda()
             node_mask2 = node_mask2.cuda()
 
-        node_mask1 = (node_mask1 >= sz1.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1).expand_as(node_mask1))
-        node_mask2 = (node_mask2 >= sz2.unsqueeze(0).unsqueeze(-1).unsqueeze(-1).expand_as(node_mask2))
+        node_mask1 = (node_mask1 >= sz1.unsqueeze(-1).unsqueeze(-1).expand_as(node_mask1))
+        node_mask2 = (node_mask2 >= sz2.unsqueeze(-1).unsqueeze(-1).expand_as(node_mask2))
 
-        node_mask = Variable(node_mask1 | node_mask2)
+        node_mask = Variable(node_mask1 | node_mask2, requires_grad=False)
 
         maximum = bdxy.max()
 
         bdxy.masked_fill_(node_mask, float(maximum.data.cpu().numpy()[0]))
 
-        bm1, _ = bdxy.min(dim=3)
-        bm2, _ = bdxy.min(dim=2)
+        bm1, _ = bdxy.min(dim=2)
+        bm2, _ = bdxy.min(dim=1)
 
-        bm1.masked_fill_(node_mask.prod(dim=3), 0)
-        bm2.masked_fill_(node_mask.prod(dim=2), 0)
+        bm1.masked_fill_(node_mask.prod(dim=2), 0)
+        bm2.masked_fill_(node_mask.prod(dim=1), 0)
 
-        d = torch.max(bm1.max(dim=2)[0], bm2.max(dim=2)[0])
+        d = torch.max(bm1.max(dim=1)[0], bm2.max(dim=1)[0])
 
         return d
 
