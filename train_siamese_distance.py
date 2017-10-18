@@ -47,6 +47,7 @@ def train(train_loader, net, distance, optimizer, cuda, criterion, epoch):
         h2, am2 = Variable(h2), Variable(am2)
         target = Variable(target)
 
+
         # Measure data loading time
         data_time.update(time.time() - end)
 
@@ -55,8 +56,31 @@ def train(train_loader, net, distance, optimizer, cuda, criterion, epoch):
         # Compute features
         output1 = net(h1, am1, g_size1, output='nodes')
         output2 = net(h2, am2, g_size2, output='nodes')
-        
+
+        # Create a mask for nodes
+        node_mask2 = torch.arange(0, h2.size(1)).unsqueeze(0).unsqueeze(-1).expand(h2.size(0),
+                                                                                   h2.size(1),
+                                                                                   output1.size(2)).long()
+        node_mask1 = torch.arange(0, h1.size(1)).unsqueeze(0).unsqueeze(-1).expand(h1.size(0),
+                                                                                   h1.size(1),
+                                                                                   output1.size(2)).long()
+
+        if h1.is_cuda:
+            node_mask1 = node_mask1.cuda()
+            node_mask2 = node_mask2.cuda()
+
+        node_mask1 = (node_mask1 >= g_size1.unsqueeze(-1).unsqueeze(-1).expand_as(node_mask1))
+        node_mask2 = (node_mask2 >= g_size2.unsqueeze(-1).unsqueeze(-1).expand_as(node_mask2))
+        node_mask1 = Variable(node_mask1)
+        node_mask2 = Variable(node_mask2)
+
+        output1.register_hook(print)
+        output1.register_hook(lambda grad: grad.masked_fill_(node_mask1, 0))
+        output2.register_hook(lambda grad: grad.masked_fill_(node_mask2,0))
+        output1.register_hook(print)
         output = distance(output1, am1, g_size1, output2, am2, g_size2)
+
+        output.register_hook(print)
 
         loss = criterion(output, target)
 
