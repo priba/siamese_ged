@@ -214,7 +214,7 @@ def main():
 
     if args.cuda:
         print('\t* CUDA')
-        net.cuda()
+        net = net.cuda()
 
     start_epoch = 0
     best_acc = 0
@@ -261,7 +261,7 @@ def main():
 
     # Evaluate best model in Test
     print('Test:')
-    #loss_test, acc_test = validation(test_loader, net, args.ngpu > 0, criterion, evaluation)
+    loss_test, acc_test = validation(test_loader, net, args.ngpu > 0, criterion, evaluation)
 
     # Dataset not siamese for test
     data_train, _, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization)
@@ -270,7 +270,7 @@ def main():
                                                batch_size=args.batch_size,
                                                num_workers=args.prefetch, pin_memory=True)
     test_loader = torch.utils.data.DataLoader(data_test,
-                                              batch_size=64, collate_fn=datasets.collate_fn_multiple_size,
+                                              batch_size=1, collate_fn=datasets.collate_fn_multiple_size,
                                               num_workers=args.prefetch, pin_memory=True)
     print('Test k-NN classifier')
     acc_test_hd = test(test_loader, train_loader, net, args.ngpu > 0, knn)

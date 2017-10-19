@@ -137,15 +137,17 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
             # Compute features
             output2 = net(h2, am2, g_size2, output='nodes')
 
-            d = distance(output1, am1, g_size1, output2, am2, g_size2)
+            d = distance(output1.expand(h2.size(0), output1.size(1), output1.size(2)),
+                            am1.expand(am2.size(0), am1.size(1), am1.size(2), am1.size(3)),
+                            g_size1.expand(g_size2.size(0)), output2, am2, g_size2)
 
             D_aux.append(d)
             T_aux.append(target2)
 
-        D = torch.cat(D_aux, 1)
+        D = torch.cat(D_aux)
         train_target = torch.cat(T_aux, 0)
 
-        bacc = evaluation(D, target1, train_target, k=eval_k)
+        bacc = evaluation(D, target1.expand_as(train_target), train_target, k=eval_k)
 
         # Measure elapsed time
         acc.update(bacc, h1.size(0))
@@ -173,7 +175,7 @@ def main():
                                                batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size,
                                                num_workers=args.prefetch, pin_memory=True)
     test_loader = torch.utils.data.DataLoader(data_test,
-                                              batch_size=64, collate_fn=datasets.collate_fn_multiple_size,
+                                              batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size,
                                               num_workers=args.prefetch, pin_memory=True)
 
     print('Create model')
@@ -185,9 +187,9 @@ def main():
         net = models.MpnnGGNN(in_size=2, e=2, hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=False, target_size=data_train.getTargetSize())
 
     if args.distance=='SoftHd':
-        distance = GraphEditDistance.AllPairsSoftHd()
+        distance = GraphEditDistance.SoftHd()
     else:
-        distance = GraphEditDistance.AllPairsHd()
+        distance = GraphEditDistance.Hd()
 
     print('Loss & optimizer')
     criterion = torch.nn.NLLLoss()
@@ -198,10 +200,12 @@ def main():
     if args.cuda and args.ngpu > 1:
         print('\t* Data Parallel **NOT TESTED**')
         net = torch.nn.DataParallel(net, device_ids=list(range(args.ngpu)))
+        distance = torch.nn.DataParallel(distance, device_ids=list(range(args.ngpu)))
 
     if args.cuda:
         print('\t* CUDA')
-        net.cuda()
+        net = net.cuda()
+        distance = distance.cuda()
 
     start_epoch = 0
     best_acc = 0
@@ -250,6 +254,9 @@ def main():
     print('Test:')
     loss_test, acc_test = validation(test_loader, net, args.ngpu > 0, criterion, evaluation)
     print('Test Hausdorff distance:')
+    test_loader = torch.utils.data.DataLoader(data_test,
+                                              batch_size=1, collate_fn=datasets.collate_fn_multiple_size,
+                                              num_workers=args.prefetch, pin_memory=True)
     acc_test_hd = test(test_loader, train_loader, net, distance, args.ngpu > 0, knn)
 
 

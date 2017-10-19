@@ -47,7 +47,7 @@ class Ggnn(nn.Module):
 
         h_multiply = torch.bmm(edge_output, h_w_rows.unsqueeze(2))
 
-        m_new = h_multiply.squeeze()
+        m_new = h_multiply.squeeze(-1)
 
         return m_new
 

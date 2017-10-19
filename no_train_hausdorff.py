@@ -22,55 +22,6 @@ __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
 
 
-def train(train_loader, net, cuda, evaluation):
-    batch_time = AverageMeter()
-    acc = AverageMeter()
-
-    eval_k = (1, 3, 5)
-
-    end = time.time()
-
-    for i, (h1, am1, g_size1, target1) in enumerate(train_loader):
-        # Prepare input data
-        if cuda:
-            h1, am1, g_size1, target1 = h1.cuda(), am1.cuda(), g_size1.cuda(), target1.cuda()
-        h1, am1, target1 = Variable(h1), Variable(am1), Variable(target1)
-
-        D_aux = []
-        T_aux = []
-        for j, (h2, am2, g_size2, target2) in enumerate(train_loader):
-            # Prepare input data
-            if cuda:
-                h2, am2, g_size2, target2 = h2.cuda(), am2.cuda(), g_size2.cuda(), target2.cuda()
-            h2, am2, target2 = Variable(h2), Variable(am2), Variable(target2)
-
-            d = net(h1, am1, g_size1, h2, am2, g_size2)
-
-            # avoid classification as himself
-            if i == j:
-                d = d + torch.cat([d.max()]*d.size(0)).diag()
-
-            D_aux.append(d)
-            T_aux.append(target2)
-
-        D = torch.cat(D_aux, 1)
-        T = torch.cat(T_aux, 0)
-
-        bacc = evaluation(D, target1, T, eval_k)
-
-        # Measure elapsed time
-        acc.update(bacc, h1.size(0))
-        batch_time.update(time.time() - end)
-        end = time.time()
-
-    print('Train distance:')
-    for i in range(len(eval_k)):
-        print('\t* {k}-NN; Average Acc {acc:.3f}; Avg Time x Batch {b_time.avg:.3f}'.format(k=eval_k[i], acc=acc.avg[i],
-                                                                                            b_time=batch_time))
-
-    return acc
-
-
 def test(test_loader, train_loader, net, cuda, evaluation):
     batch_time = AverageMeter()
     acc = AverageMeter()
@@ -93,18 +44,17 @@ def test(test_loader, train_loader, net, cuda, evaluation):
                 h2, am2, g_size2, target2 = h2.cuda(), am2.cuda(), g_size2.cuda(), target2.cuda()
             h2, am2, target2 = Variable(h2), Variable(am2), Variable(target2)
 
-            d = net(h1, am1, g_size1, h2, am2, g_size2)
+            d = net(h1.expand(h2.size(0), h1.size(1), h1.size(2)),
+                    am1.expand(am2.size(0), am1.size(1), am1.size(2), am1.size(2)),
+                    g_size1.expand_as(g_size2), h2, am2, g_size2)
 
             D_aux.append(d)
             T_aux.append(target2)
 
-        D = torch.cat(D_aux, 1)
-        T = torch.cat(T_aux, 0)
+        D = torch.cat(D_aux)
+        train_target = torch.cat(T_aux, 0)
 
-        _, ind = D.sort()
-        pred = T[ind[:, 0]]
-
-        bacc = evaluation(D, target1, T, eval_k)
+        bacc = evaluation(D, target1.expand_as(train_target), train_target, k=eval_k)
 
         # Measure elapsed time
         acc.update(bacc, h1.size(0))
@@ -129,17 +79,17 @@ def main():
                                                batch_size=args.batch_size,
                                                num_workers=args.prefetch, pin_memory=True)
     valid_loader = torch.utils.data.DataLoader(data_valid,
-                                               batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size,
+                                               batch_size=1, collate_fn=datasets.collate_fn_multiple_size,
                                                num_workers=args.prefetch, pin_memory=True)
     test_loader = torch.utils.data.DataLoader(data_test,
-                                              batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size,
+                                              batch_size=1, collate_fn=datasets.collate_fn_multiple_size,
                                               num_workers=args.prefetch, pin_memory=True)
 
     print('Create model')
     if args.distance=='SoftHd':
-        net = GraphEditDistance.AllPairsSoftHd()
+        net = GraphEditDistance.SoftHd()
     else:
-        net = GraphEditDistance.AllPairsHd()
+        net = GraphEditDistance.Hd()
 
     print('Loss & optimizer')
     evaluation = knn
@@ -151,10 +101,7 @@ def main():
 
     if args.cuda:
         print('\t* CUDA')
-        net.cuda()
-
-    print('Train')
-    acc_train = train(train_loader, net, args.ngpu > 0, evaluation)
+        net = net.cuda()
 
     print('Validation')
     acc_valid = test(valid_loader, train_loader, net, args.ngpu > 0, evaluation)

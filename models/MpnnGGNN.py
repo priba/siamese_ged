@@ -9,6 +9,8 @@ import MessageFunction
 import UpdateFunction
 import ReadoutFunction
 
+import pdb
+
 __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
 
@@ -82,7 +84,10 @@ class MpnnGGNN(nn.Module):
             h_aux = h_t.view(-1, h_t.size(2))
 
             m = self.m(h_t, h_aux, e_aux)
-            m = m.view(h_t.size(0), h_t.size(1), -1, m.size(1))
+            try:
+                m = m.view(h_t.size(0), h_t.size(1), -1, m.size(1))
+            except:
+                pdb.set_trace()
 
             # Nodes without edge set message to 0
             m = edge_mask.expand_as(m) * m

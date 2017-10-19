@@ -176,7 +176,8 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
             # Compute features
             output2 = net(h2, am2, g_size2, output='nodes')
 
-            dist = distance(output1, am1, g_size1, output2, am2, g_size2)
+            # Expand test sample to make all the pairs with the train
+            dist = distance(output1.expand(h2.size(0), -1, -1), am1.expand(am2.size(0), -1, -1, -1), g_size1.expand(g_size2.size(0)), output2, am2, g_size2)
 
             D_aux.append(dist)
             T_aux.append(target2)
@@ -295,15 +296,11 @@ def main():
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size,
                                                batch_size=args.batch_size,
                                                num_workers=args.prefetch, pin_memory=True)
+    # The batchsize is given by the train_loader
     test_loader = torch.utils.data.DataLoader(data_test,
-                                              batch_size=64, collate_fn=datasets.collate_fn_multiple_size,
+                                              batch_size=1, collate_fn=datasets.collate_fn_multiple_size,
                                               num_workers=args.prefetch, pin_memory=True)
     print('Test k-NN classifier')
-    if args.distance=='SoftHd':
-        distance = GraphEditDistance.AllPairsSoftHd()
-    else:
-        distance = GraphEditDistance.AllPairsHd()
-
     acc_test_hd = test(test_loader, train_loader, net, distance, args.ngpu > 0, knn)
 
 

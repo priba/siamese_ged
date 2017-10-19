@@ -1,3 +1,4 @@
 from .HausdorffEditDistance import Hed
-from .HausdorffDistance import Hd, AllPairsHd
-from .SoftHausdorffDistance import SoftHd, AllPairsSoftHd
+from .HausdorffDistance import Hd
+from .SoftHausdorffDistance import SoftHd
+

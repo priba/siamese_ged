@@ -66,13 +66,13 @@ def knn(D, target, train_target, k=(1,)):
     """Computes the precision@k for the specified values of k"""
     maxk=max(k)
     batch_size = target.size(0)
-    _, pred = D.topk(maxk, dim=1, largest=False, sorted=True)
-    pred = train_target[pred.view(-1)].view(batch_size, -1)
+    _, pred = D.topk(maxk, largest=False, sorted=True)
+    pred = train_target[pred]
     pred = pred.type_as(target)
 
     res = []
     for ki in k:
-        pred_k = nn_prediction(pred[:,:ki])
+        pred_k = nn_prediction(pred[:ki], axis=0)
 
         pred_k = pred_k.squeeze()
         correct_k = pred_k.eq(target.data).float().sum()
@@ -100,16 +100,16 @@ def nn_prediction(pred, axis=1):
         template = (pred == score).data
         counts = template.float().sum(axis, keepdim=True)
 
-        ind = torch.arange(0, pred.size(1)).unsqueeze(0).expand_as(template)
+        ind = torch.arange(0, pred.size(0)).expand_as(template)
         if pred.is_cuda:
             ind = ind.cuda()
-        ind = ind*template.float() + pred.size(1)*(1-template.float())
-        _, ind = ind.min(1,keepdim=True)
+        ind = ind*template.float() + pred.size(0)*(1-template.float())
+        _, ind = ind.min(0,keepdim=True)
 
         mostfrequent[(counts > oldcounts) | ((counts==oldcounts) & (ind < mostindex))] = score
         mostindex[(counts > oldcounts) | ((counts==oldcounts) & (ind < mostindex))] = ind[(counts > oldcounts) | ((counts==oldcounts) & (ind < mostindex))]
 
-        oldcounts,_ = torch.max(torch.cat([oldcounts, counts],1),1, keepdim=True)
+        oldcounts,_ = torch.max(torch.cat([oldcounts.unsqueeze(0), counts.unsqueeze(0)],1),1, keepdim=True)
 
     return mostfrequent.long()
 
