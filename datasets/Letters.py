@@ -55,6 +55,11 @@ class LettersSiamese(data.Dataset):
         self.representation = representation
         self.normalization = normalization
 
+        pair_label = np.array([self.labels[p[0]]==self.labels[p[1]] for p in self.pairs])
+        self.weight = np.zeros(len(pair_label))
+        self.weight[pair_label] = 1.0/pair_label.sum()
+        self.weight[np.invert(pair_label)] = 1.0/np.invert(pair_label).sum()
+
     def __getitem__(self, index):
         ind = self.pairs[index]
 
@@ -85,6 +90,9 @@ class LettersSiamese(data.Dataset):
 
     def getTargetSize(self):
         return len(self.unique_labels)
+
+    def getWeights(self):
+        return self.weight
 
 
 def getFileList(file_path):

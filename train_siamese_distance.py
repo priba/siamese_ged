@@ -23,6 +23,8 @@ import models
 import GraphEditDistance
 import LossFunction
 
+import pdb
+
 __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
 
@@ -208,12 +210,15 @@ def main():
     print('Prepare dataset')
     # Dataset
     data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization, siamese=True)
-
+    
+    train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 750, replacement=False)
+    valid_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_valid.getWeights(), 750, replacement=False)
+    
     # Data Loader
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size_siamese,
-                                               batch_size=args.batch_size, shuffle=True,
+                                               batch_size=args.batch_size, sampler=train_sampler,
                                                num_workers=args.prefetch, pin_memory=True)
-    valid_loader = torch.utils.data.DataLoader(data_valid,
+    valid_loader = torch.utils.data.DataLoader(data_valid, sampler=valid_sampler,
                                                batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size_siamese,
                                                num_workers=args.prefetch, pin_memory=True)
     test_loader = torch.utils.data.DataLoader(data_test,
