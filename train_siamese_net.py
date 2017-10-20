@@ -154,16 +154,15 @@ def test(test_loader, train_loader, net, cuda, evaluation):
             output2 = net(h2, am2, g_size2)
 
             twoab = 2* output1.mm(output2.t())
-            dist = (output1*output1).sum(1, keepdim=True).expand_as(twoab)+(output2*output2).sum(1, keepdim=True).t().expand_as(twoab)-twoab
-            dist = dist.sqrt()
+            dist = (output1*output1).sum(1).expand_as(twoab)+(output2*output2).sum(1).expand_as(twoab)-twoab
+            dist = dist.sqrt().squeeze()
 
             D_aux.append(dist)
             T_aux.append(target2)
 
-        D = torch.cat(D_aux, 1)
+        D = torch.cat(D_aux)
         train_target = torch.cat(T_aux, 0)
-
-        bacc = evaluation(D, target1, train_target, k=eval_k)
+        bacc = evaluation(D, target1.expand_as(train_target), train_target, k=eval_k)
 
         # Measure elapsed time
         acc.update(bacc, h1.size(0))

@@ -74,13 +74,10 @@ def train(train_loader, net, distance, optimizer, cuda, criterion, epoch):
         node_mask1 = Variable(node_mask1)
         node_mask2 = Variable(node_mask2)
 
-        output1.register_hook(print)
         output1.register_hook(lambda grad: grad.masked_fill_(node_mask1, 0))
         output2.register_hook(lambda grad: grad.masked_fill_(node_mask2,0))
-        output1.register_hook(print)
+        
         output = distance(output1, am1, g_size1, output2, am2, g_size2)
-
-        output.register_hook(print)
 
         loss = criterion(output, target)
 
@@ -177,12 +174,13 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
             output2 = net(h2, am2, g_size2, output='nodes')
 
             # Expand test sample to make all the pairs with the train
-            dist = distance(output1.expand(h2.size(0), -1, -1), am1.expand(am2.size(0), -1, -1, -1), g_size1.expand(g_size2.size(0)), output2, am2, g_size2)
+            dist = distance(output1.expand(h2.size(0), output1.size(1), output1.size(2)),
+                    am1.expand(am2.size(0), am1.size(1), am1.size(2), am1.size(3)), g_size1.expand(g_size2.size(0)), output2, am2, g_size2)
 
             D_aux.append(dist)
             T_aux.append(target2)
 
-        D = torch.cat(D_aux, 1)
+        D = torch.cat(D_aux)
         train_target = torch.cat(T_aux, 0)
 
         bacc = evaluation(D, target1, train_target, k=eval_k)
@@ -238,10 +236,12 @@ def main():
     if args.cuda and args.ngpu > 1:
         print('\t* Data Parallel **NOT TESTED**')
         net = torch.nn.DataParallel(net, device_ids=list(range(args.ngpu)))
-
+        distance = torch.nn.DataParallel(distance, device_ids=list(range(args.ngpu)))
+        
     if args.cuda:
         print('\t* CUDA')
-        net.cuda()
+        net = net.cuda()
+        distance = distance.cuda()
 
     start_epoch = 0
     best_acc = 0
@@ -249,6 +249,7 @@ def main():
         print('Loading model')
         checkpoint = load_checkpoint(args.load)
         net.load_state_dict(checkpoint['state_dict'])
+        distance.load_state_dict(checkpoint['distance_state_dict'])
         start_epoch = checkpoint['epoch']
         best_acc = checkpoint['best_acc']
 
@@ -267,7 +268,7 @@ def main():
             if args.save is not None:
                 if acc_valid.avg > best_acc:
                     best_acc = acc_valid.avg
-                    save_checkpoint({'epoch': epoch + 1, 'state_dict': net.state_dict(), 'best_acc': best_acc},
+                    save_checkpoint({'epoch': epoch + 1, 'state_dict': net.state_dict(), 'distance_state_dict': distance.state_dict(), 'best_acc': best_acc},
                                     directory=args.save, file_name='checkpoint')
 
             # Logger step
@@ -285,6 +286,7 @@ def main():
             best_model_file = os.path.join(args.save, 'checkpoint.pth')
             checkpoint = load_checkpoint(best_model_file)
             net.load_state_dict(checkpoint['state_dict'])
+            distance.load_state_dict(checkpoint['distance_state_dict'])
 
     # Evaluate best model in Test
     print('Test:')

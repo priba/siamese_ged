@@ -51,7 +51,7 @@ class LettersSiamese(data.Dataset):
         self.unique_labels = np.unique(self.labels)
         self.labels = [np.where(target == self.unique_labels)[0][0] for target in self.labels]
 
-        self.pairs = list(itertools.combinations(range(len(self.labels)), 2))
+        self.pairs = list(itertools.permutations(range(len(self.labels)), 2))
         self.representation = representation
         self.normalization = normalization
 
