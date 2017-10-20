@@ -211,8 +211,8 @@ def main():
     # Dataset
     data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization, siamese=True)
     
-    train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 750, replacement=False)
-    valid_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_valid.getWeights(), 750, replacement=False)
+    train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 2*15*50*(50-1), replacement=False)
+    valid_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_valid.getWeights(), 2*15*50*(50-1), replacement=False)
     
     # Data Loader
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size_siamese,
