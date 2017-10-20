@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from __future__ import print_function, division
 
 import torch
 import torch.nn as nn
@@ -84,10 +85,7 @@ class MpnnGGNN(nn.Module):
             h_aux = h_t.view(-1, h_t.size(2))
 
             m = self.m(h_t, h_aux, e_aux)
-            try:
-                m = m.view(h_t.size(0), h_t.size(1), -1, m.size(1))
-            except:
-                pdb.set_trace()
+            m = m.view(h_t.size(0), h_t.size(1), -1, m.size(1))
 
             # Nodes without edge set message to 0
             m = edge_mask.expand_as(m) * m
@@ -98,7 +96,7 @@ class MpnnGGNN(nn.Module):
 
             # Delete virtual nodes
             h_t = node_mask.expand_as(h_t) * h_t
-
+        
         # Readout
         if output == 'embedding':
             res = self.r([h_t, h_in], args={'node_mask': node_mask})

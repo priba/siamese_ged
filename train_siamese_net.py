@@ -22,6 +22,7 @@ from utils import save_checkpoint, load_checkpoint, siamese_accuracy, knn
 import models
 import LossFunction
 
+
 __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
 
