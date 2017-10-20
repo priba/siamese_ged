@@ -34,6 +34,7 @@ def train(train_loader, net, distance, optimizer, cuda, criterion, epoch):
 
     # switch to train mode
     net.train()
+    distance.train()
 
     end = time.time()
 
@@ -106,6 +107,7 @@ def validation(test_loader, net, distance, cuda, criterion, evaluation):
 
     # switch to train mode
     net.eval()
+    distance.eval()
 
     end = time.time()
 
@@ -150,6 +152,10 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
     acc = AverageMeter()
 
     eval_k = (1, 3, 5)
+
+    # switch to train mode
+    net.eval()
+    distance.eval()
 
     end = time.time()
 

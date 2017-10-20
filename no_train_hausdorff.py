@@ -28,6 +28,9 @@ def test(test_loader, train_loader, net, cuda, evaluation):
 
     eval_k = (1, 3, 5)
 
+    # Switch to eval mode
+    net.eval()
+
     end = time.time()
 
     for i, (h1, am1, g_size1, target1) in enumerate(test_loader):
