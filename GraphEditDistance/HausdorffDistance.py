@@ -14,7 +14,7 @@ from __future__ import print_function
 import torch
 import torch.nn as nn
 from torch.autograd.variable import Variable
-
+import numpy as np
 # Own modules
 
 __author__ = "Pau Riba"
@@ -54,7 +54,8 @@ class Hd(nn.Module):
 
         maximum = bdxy.max()
 
-        bdxy.masked_fill_(node_mask, float(maximum.data.cpu().numpy()[0]))
+        #bdxy.masked_fill_(node_mask, float(maximum.data.cpu().numpy()[0]))
+        bdxy.masked_fill_(node_mask, float(np.inf))
 
         bm1, _ = bdxy.min(dim=2)
         bm2, _ = bdxy.min(dim=1)
