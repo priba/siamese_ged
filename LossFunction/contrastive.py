@@ -23,7 +23,7 @@ class ContrastiveLoss(torch.nn.Module):
 
         mdist = self.margin - dist
         mdist = torch.clamp(mdist, min=0.0)
-        loss = (1-y) * dist.pow(2) + y * torch.pow(mdist, 2)
+        loss = y * dist.pow(2) + (1 - y) * torch.pow(mdist, 2)
         loss = (loss.sum() / 2.0) / y.size(0)
         return loss
 

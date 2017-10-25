@@ -182,18 +182,28 @@ def main():
                                               batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size,
                                               num_workers=args.prefetch, pin_memory=True)
 
-    print('Create model')
-    if args.representation!='feat':
-        print('\t* Discrete Edges')
         net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=True, target_size=data_train.getTargetSize())
-    else:
-        print('\t* Feature Edges')
         net = models.MpnnGGNN(in_size=2, e=2, hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=False, target_size=data_train.getTargetSize())
 
-    if args.distance=='SoftHd':
+    print('Create model')
+    if args.representation=='adj':
+        print('\t* Discrete Edges')
+        net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=True, target_size=data_train.getTargetSize())
+    elif args.representation=='feat':
+        print('\t* Feature Edges')
+        net = models.MpnnGGNN(in_size=2, e=2, hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=False, target_size=data_train.getTargetSize())
+    else:
+        raise NameError('Representation ' + args.representation + ' not implemented!')
+
+    print('Distance')
+    if args.distance=='Hd':
+        print('\t* Hausdorff Distance')
+        distance = GraphEditDistance.Hd()
+    elif args.distance=='SoftHd':
+        print('\t* Soft Hausdorff Distance')
         distance = GraphEditDistance.SoftHd()
     else:
-        distance = GraphEditDistance.Hd()
+        raise NameError('Distance ' + args.distance + ' not implemented!')
 
     print('Loss & optimizer')
     criterion = torch.nn.NLLLoss()

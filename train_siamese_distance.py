@@ -79,7 +79,9 @@ def train(train_loader, net, distance, optimizer, cuda, criterion, epoch):
 
         output1.register_hook(lambda grad: grad.masked_fill_(node_mask1, 0))
         output2.register_hook(lambda grad: grad.masked_fill_(node_mask2,0))
-        
+       
+        pdb.set_trace()
+
         output = distance(output1, am1, g_size1, output2, am2, g_size2)
 
         loss = criterion(output, target)
@@ -211,8 +213,8 @@ def main():
     # Dataset
     data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization, siamese=True)
     
-    train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 2*15*50*(50-1), replacement=False)
-    valid_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_valid.getWeights(), 2*15*50*(50-1), replacement=False)
+    train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 2*15*50*(50-1), replacement=True)
+    valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(torch.multinomial(torch.DoubleTensor(data_valid.getWeights()), 50*(50-1), replacement=False))
     
     # Data Loader
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size_siamese,
@@ -226,17 +228,27 @@ def main():
                                               num_workers=args.prefetch, pin_memory=True)
 
     print('Create model')
-    if args.representation!='feat':
+    if args.representation=='adj':
         print('\t* Discrete Edges')
         net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=True, out_type='regression', target_size=data_train.getTargetSize())
-    else:
+    elif args.representation=='feat':
         print('\t* Feature Edges')
         net = models.MpnnGGNN(in_size=2, e=2, hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=False, out_type='regression', target_size=data_train.getTargetSize())
-
-    if args.distance=='SoftHd':
-        distance = GraphEditDistance.SoftHd()
     else:
+        raise NameError('Representation ' + args.representation + ' not implemented!')
+
+    print('Distance')
+    if args.distance=='Hd':
+        print('\t* Hausdorff Distance')
         distance = GraphEditDistance.Hd()
+    elif args.distance=='SoftHd':
+        print('\t* Soft Hausdorff Distance')
+        distance = GraphEditDistance.SoftHd()
+    elif args.distance=='Hed':
+        print('\t* Hausdorff Edit Distance')
+        distance = GraphEditDistance.Hed(args={'node_in': 64, 'edge_in': 2})
+    else:
+        raise NameError('Distance ' + args.distance + ' not implemented!')
 
     print('Loss & optimizer')
     criterion = LossFunction.ContrastiveLoss()

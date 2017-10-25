@@ -56,7 +56,7 @@ def precision_at_k(output, target, topk=(1,)):
 def siamese_accuracy(output, target):
     batch_size = target.size(0)
 
-    pred=(output > 0.5).float()
+    pred=(output < 0.5).float()
     correct = pred.eq(target).float()
     acc= 100.0*correct.sum()/batch_size
     return acc

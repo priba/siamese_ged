@@ -22,6 +22,7 @@ from utils import save_checkpoint, load_checkpoint, siamese_accuracy, knn
 import models
 import LossFunction
 
+import pdb
 
 __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
@@ -186,9 +187,9 @@ def main():
     # Dataset
     data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization, siamese=True)
 
-    train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 2*15*50*(50-1), replacement=False)
-    valid_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_valid.getWeights(), 2*15*50*(50-1), replacement=False)
-    
+    train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 2*15*50*(50-1), replacement=True)
+    valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(torch.multinomial(torch.DoubleTensor(data_valid.getWeights()), 50*(50-1), replacement=False))
+
     # Data Loader
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size_siamese,
                                                batch_size=args.batch_size, sampler=train_sampler,
