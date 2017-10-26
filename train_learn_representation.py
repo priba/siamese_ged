@@ -182,9 +182,6 @@ def main():
                                               batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size,
                                               num_workers=args.prefetch, pin_memory=True)
 
-        net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=True, target_size=data_train.getTargetSize())
-        net = models.MpnnGGNN(in_size=2, e=2, hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=False, target_size=data_train.getTargetSize())
-
     print('Create model')
     if args.representation=='adj':
         print('\t* Discrete Edges')
