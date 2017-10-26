@@ -31,12 +31,12 @@ class Hed(nn.Module):
         self.node_in = args['node_in']
         self.edge_in = args['edge_in']
 
-        self.node_insertion = nn.Parameter(torch.randn(1, self.node_in))
-        self.node_deletion = nn.Parameter(torch.randn(1, self.node_in))
+        self.node_insertion = nn.Parameter(torch.randn(self.node_in, self.node_in))
+        self.node_deletion = nn.Parameter(torch.randn(self.node_in, self.node_in))
         self.node_substitution = nn.Parameter(torch.randn(self.node_in, self.node_in))
 
-        self.edge_insertion = nn.Parameter(torch.randn(1, self.edge_in))
-        self.edge_deletion = nn.Parameter(torch.randn(1, self.edge_in))
+        self.edge_insertion = nn.Parameter(torch.randn(self.edge_in, self.edge_in))
+        self.edge_deletion = nn.Parameter(torch.randn(self.edge_in, self.edge_in))
         self.edge_substitution = nn.Parameter(torch.randn(self.edge_in, self.edge_in))
         
     def forward(self, v1, am1, sz1, v2, am2, sz2):
@@ -59,16 +59,17 @@ class Hed(nn.Module):
     def deletion_distance(self, v, am, sz):
         # Node
         v_view = v.view(-1, v.size(-1), 1)
-        del_view = self.node_deletion.unsqueeze(0).expand(v_view.size(0), 1, self.node_in)
+        del_view = self.node_deletion.unsqueeze(0).expand(v_view.size(0), self.node_in, self.node_in)
+        
         d = del_view.bmm(v_view)
+        d = v_view.transpose(1,2).bmm(v_view)
+
         d = d.view(v.size(0), -1)
 
         # Edge
-        am_view = am.view(-1, am.size(-1), 1)
-        del_edg_view = self.edge_deletion.unsqueeze(0).expand(am_view.size(0), 1, self.edge_in)
-        d_edge = del_edg_view.bmm(am_view)
+        d_edge = self.edge_deletion_distance(am, sz)
         d_edge = d_edge/2.0
-        d_edge = d_edge.view(am.size(0), am.size(1), am.size(2))
+
         d_edge = d_edge.sum(2)
 
         return d + d_edge
@@ -76,16 +77,17 @@ class Hed(nn.Module):
     def insertion_distance(self, v, am, sz):
         # Node
         v_view = v.view(-1, v.size(-1), 1)
-        ins_view = self.node_insertion.unsqueeze(0).expand(v_view.size(0), 1, self.node_in)
+        ins_view = self.node_insertion.unsqueeze(0).expand(v_view.size(0), self.node_in, self.node_in)
+
         d = ins_view.bmm(v_view)
+        d = v_view.transpose(1,2).bmm(d)
+
         d = d.view(v.size(0), -1)
 
         # Edge
-        am_view = am.view(-1, am.size(-1), 1)
-        ins_edg_view = self.edge_insertion.unsqueeze(0).expand(am_view.size(0), 1, self.edge_in)
-        d_edge = ins_edg_view.bmm(am_view)
+        d_edge = self.edge_insertion_distance(am, sz)
         d_edge = d_edge/2.0
-        d_edge = d_edge.view(am.size(0), am.size(1), am.size(2))
+
         d_edge = d_edge.sum(2)
 
         return d + d_edge
@@ -119,8 +121,11 @@ class Hed(nn.Module):
     def edge_deletion_distance(self, am, sz):
         # Edge
         am_view = am.view(-1, am.size(-1), 1)
-        del_edg_view = self.edge_deletion.unsqueeze(0).expand(am_view.size(0), 1, self.edge_in)
+        del_edg_view = self.edge_deletion.unsqueeze(0).expand(am_view.size(0), self.edge_in, self.edge_in)
+
         d_edge = del_edg_view.bmm(am_view)
+        d_edge = am_view.transpose(1,2).bmm(d_edge)
+
         d_edge = d_edge.view(am.size(0), am.size(1), am.size(2))
 
         return d_edge
@@ -128,8 +133,11 @@ class Hed(nn.Module):
     def edge_insertion_distance(self, am, sz):
         # Edge
         am_view = am.view(-1, am.size(-1), 1)
-        ins_edg_view = self.edge_insertion.unsqueeze(0).expand(am_view.size(0), 1, self.edge_in)
+        ins_edg_view = self.edge_insertion.unsqueeze(0).expand(am_view.size(0), self.edge_in, self.edge_in)
+
         d_edge = ins_edg_view.bmm(am_view)
+        d_edge = am_view.transpose(1,2).bmm(d_edge)
+
         d_edge = d_edge.view(am.size(0), am.size(1), am.size(2))
 
         return d_edge
@@ -146,6 +154,7 @@ class Hed(nn.Module):
                                     am1_view.size(1), am2_view.size(3),
                                     am2_view.size(4)).transpose(1, 2)
         
+        pdb.set_trace()
         am1_view.contiguous()
         am2_view.contiguous()
 
@@ -169,4 +178,4 @@ class Hed(nn.Module):
 
     def L_nodes(self, v1, v2):
         
-
+        pass

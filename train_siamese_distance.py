@@ -80,8 +80,6 @@ def train(train_loader, net, distance, optimizer, cuda, criterion, epoch):
         output1.register_hook(lambda grad: grad.masked_fill_(node_mask1, 0))
         output2.register_hook(lambda grad: grad.masked_fill_(node_mask2,0))
        
-        pdb.set_trace()
-
         output = distance(output1, am1, g_size1, output2, am2, g_size2)
 
         loss = criterion(output, target)

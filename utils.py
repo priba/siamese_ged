@@ -113,3 +113,14 @@ def nn_prediction(pred, axis=1):
 
     return mostfrequent.long()
 
+
+def plot_letters(numpy_all, numpy_labels):
+    c = ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff',
+             '#ff00ff', '#990000', '#999900', '#009900', '#009999', '#0ffff0', '#000099', '#990099', '#099990', '#999999']
+
+    for i in range(14):
+        f = numpy_all[np.where(numpy_labels == i)]
+        plt.plot(f[:, 0], f[:, 1], '.', c=c[i])
+    plt.legend(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'])
+    plt.savefig('result.png')
+
