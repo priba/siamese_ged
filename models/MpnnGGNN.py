@@ -64,10 +64,12 @@ class MpnnGGNN(nn.Module):
         self.n_layers = n_layers
 
     def forward(self, h_in, am, g_size, output='embedding'):
-
         # Padding to some larger dimension d
-        h_t = torch.cat([h_in, Variable(
-            torch.zeros(h_in.size(0), h_in.size(1), self.args['out'] - h_in.size(2)).type_as(h_in.data))], 2)
+        if self.args['out'] - h_in.size(2) > 0:
+            h_t = torch.cat([h_in, Variable(
+                torch.zeros(h_in.size(0), h_in.size(1), self.args['out'] - h_in.size(2)).type_as(h_in.data))], 2)
+        else:
+            h_t = h_in
         
         # Create a mask for nodes
         node_mask = torch.arange(0,h_in.size(1)).unsqueeze(0).expand(h_in.size(0), h_in.size(1)).long()

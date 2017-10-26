@@ -220,16 +220,16 @@ def main():
                                                batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size_siamese,
                                                num_workers=args.prefetch, pin_memory=True)
     test_loader = torch.utils.data.DataLoader(data_test,
-                                              batch_size=64, collate_fn=datasets.collate_fn_multiple_size_siamese,
+                                              batch_size=,rgs.batch_size collate_fn=datasets.collate_fn_multiple_size_siamese,
                                               num_workers=args.prefetch, pin_memory=True)
 
     print('Create model')
     if args.representation=='adj':
         print('\t* Discrete Edges')
-        net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=True, out_type='regression', target_size=data_train.getTargetSize())
+        net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=args.hidden_size, message_size=args.hidden_size, n_layers=args.nlayers, discrete_edge=True, out_type='regression', target_size=data_train.getTargetSize())
     elif args.representation=='feat':
         print('\t* Feature Edges')
-        net = models.MpnnGGNN(in_size=2, e=2, hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=False, out_type='regression', target_size=data_train.getTargetSize())
+        net = models.MpnnGGNN(in_size=2, e=2, hidden_state_size=args.hidden_size, message_size=args.hidden_size, n_layers=args.nlayers, discrete_edge=False, out_type='regression', target_size=data_train.getTargetSize())
     else:
         raise NameError('Representation ' + args.representation + ' not implemented!')
 

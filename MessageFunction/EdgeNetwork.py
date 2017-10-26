@@ -13,7 +13,6 @@ from __future__ import print_function
 
 import torch
 import torch.nn as nn
-
 # Own modules
 
 __author__ = "Pau Riba"
@@ -29,10 +28,13 @@ class EdgeNetwork(nn.Module):
         self.e_size = args['e_size']
         self.in_size = args['in']
         self.out_size = args['out']
+        if self.out_size*self.in_size > 64:
+            self.edge_matrix = nn.Sequential(nn.Linear(self.e_size, 128), nn.ReLU(),
+                    nn.Linear(128, 512), nn.ReLU(), nn.Linear(512, 2048), nn.ReLU(),
+                    nn.Linear(2048, self.out_size*self.in_size))
+        else:
+            self.edge_matrix = nn.Sequential(nn.Linear(self.e_size, self.out_size*self.in_size), nn.Tanh())
 
-        self.edge_matrix = nn.Sequential(nn.Linear(self.e_size, 128), nn.ReLU(),
-                nn.Linear(128, 512), nn.ReLU(), nn.Linear(512, 2048), nn.ReLU(),
-                nn.Linear(2048, self.out_size*self.in_size))
 
     # Message from h_v to h_w through e_vw
     # M_t(h^t_v, h^t_w, e_vw) = A_e_vw h^t_w

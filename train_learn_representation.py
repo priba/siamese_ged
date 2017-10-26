@@ -185,10 +185,10 @@ def main():
     print('Create model')
     if args.representation=='adj':
         print('\t* Discrete Edges')
-        net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=True, target_size=data_train.getTargetSize())
+        net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=args.hidden_size, message_size=args.hidden_size, n_layers=args.nlayers, discrete_edge=True, target_size=data_train.getTargetSize())
     elif args.representation=='feat':
         print('\t* Feature Edges')
-        net = models.MpnnGGNN(in_size=2, e=2, hidden_state_size=64, message_size=64, n_layers=args.nlayers, discrete_edge=False, target_size=data_train.getTargetSize())
+        net = models.MpnnGGNN(in_size=2, e=2, hidden_state_size=args.hidden_size, message_size=args.hidden_size, n_layers=args.nlayers, discrete_edge=False, target_size=data_train.getTargetSize())
     else:
         raise NameError('Representation ' + args.representation + ' not implemented!')
 
