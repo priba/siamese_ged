@@ -220,7 +220,7 @@ def main():
                                                batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size_siamese,
                                                num_workers=args.prefetch, pin_memory=True)
     test_loader = torch.utils.data.DataLoader(data_test,
-                                              batch_size=,rgs.batch_size collate_fn=datasets.collate_fn_multiple_size_siamese,
+                                              batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size_siamese,
                                               num_workers=args.prefetch, pin_memory=True)
 
     print('Create model')
