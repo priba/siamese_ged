@@ -23,8 +23,6 @@ import models
 import GraphEditDistance
 import LossFunction
 
-import pdb
-
 __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
 
