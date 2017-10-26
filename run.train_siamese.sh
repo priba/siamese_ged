@@ -9,4 +9,4 @@
 #SBATCH --partition=gpu
 #SBATCH --qos=job_gpu
 #SBATCH --gres=gpu:1080ti:1
-srun ruby rubyscripts/train_siamese.rb $SLURM_ARRAY_TASK_ID
+srun python ubelix/train_siamese.py $SLURM_ARRAY_TASK_ID
