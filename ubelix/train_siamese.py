@@ -1,5 +1,4 @@
 import os, sys
-from subprocess import call
 
 # path
 
@@ -57,7 +56,7 @@ else:
         os.makedirs(dir_run)
 
     print "train NMP: " + dir_run + " .."
-    cmd = "python train_siamese_net.py " + dir_db + " letters -s " + dir_checkpoint + " --log " + dir_log + " -lr " + lr + "--nlayers " + layer + " --hidden_size " + hstate + " -e " + epochs + " -b " + batch_size + " --representation " + edge + " --schedule " + epochs + " --distance " + distance + " > " + dir_run + "run.txt"
+    cmd = "python train_siamese_net.py " + dir_db + " letters -s " + dir_checkpoint + " --log " + dir_log + " -lr " + lr + " --nlayers " + layer + " --hidden_size " + hstate + " -e " + epochs + " -b " + batch_size + " --representation " + edge + " --schedule " + epochs + " --distance " + distance + " > " + dir_run + "run.txt"
     print cmd
-    call(cmd)
+    os.system(cmd)
     print ".. done."
