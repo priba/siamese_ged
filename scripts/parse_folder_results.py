@@ -7,6 +7,7 @@ import subprocess
 import re
 import numpy as np
 
+
 if __name__ == '__main__':
     # Parse optios for downloading
     parser = argparse.ArgumentParser(description='Parse a folder and computes the mean and standard deviation.')
@@ -14,8 +15,7 @@ if __name__ == '__main__':
     parser.add_argument('folder', type=str, help='Specify the data directory.')
 
     args = parser.parse_args()
-
-    f_list=glob.glob(args.folder+'*.txt')
+    f_list=glob.glob(args.folder+'*/*.txt')
     
     acc = []
     regex = re.compile(r"(?<=\bAverage Acc )[\w.]+")
