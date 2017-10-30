@@ -263,12 +263,12 @@ def main():
 
     # Evaluate best model in Test
     print('Test:')
-    #loss_test, acc_test = validation(test_loader, net, args.ngpu > 0, criterion, evaluation)
+    loss_test, acc_test = validation(test_loader, net, args.ngpu > 0, criterion, evaluation)
     print('Test Hausdorff distance:')
     test_loader = torch.utils.data.DataLoader(data_test,
                                               batch_size=1, collate_fn=datasets.collate_fn_multiple_size,
                                               num_workers=args.prefetch, pin_memory=True)
-    # acc_test_hd = test(test_loader, train_loader, net, distance, args.ngpu > 0, knn)
+    acc_test_hd = test(test_loader, train_loader, net, distance, args.ngpu > 0, knn)
     
     if args.write is not None:
         if not os.path.exists(args.write):
