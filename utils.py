@@ -9,7 +9,7 @@ import torch
 import os
 import errno
 import numpy as np
-
+import pdb
 __author__ = 'Pau Riba'
 __email__ = 'priba@cvc.uab.cat'
 
@@ -32,6 +32,48 @@ def load_checkpoint(model_file):
         print("=> no model found at '{}'".format(model_file))
         raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), model_file)
 
+def write_gxl(v, am, out_file, directed=False):
+    graph_id = os.path.splitext(os.path.basename(out_file))[0]
+    with open(out_file, 'w') as file_object:
+        file_object.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+        file_object.write('<!DOCTYPE gxl SYSTEM "http://www.gupro.de/GXL/gxl-1.0.dtd">\n')
+        file_object.write('<gxl xmlns:xlink="http://www.w3.org/1999/xlink">\n')
+
+        if directed:
+            file_object.write('\t<graph id="' + graph_id + '" edgeids="false" edgemode="directed">\n')
+        else:
+            file_object.write('\t<graph id="' + graph_id + '" edgeids="false" edgemode="undirected">\n')
+
+        # Node
+        for i in range(v.size(0)):
+            file_object.write('\t\t<node id="_' + str(i) + '">\n')
+            file_object.write('\t\t\t<attr name="hidden_state">\n')
+            file_object.write('\t\t\t\t<vector>')
+            file_object.write(str(v[i,0]))
+            for j in range(1,v.size(1)):
+                file_object.write(', ' + str(v[i,j]))
+            file_object.write('</vector>\n')
+            file_object.write('\t\t\t</attr>\n')
+            file_object.write('\t\t</node>\n')
+        #Edge
+        for i in range(v.size(0)):
+            start_j = 0 if directed else i
+            for j in range(start_j, v.size(0)):
+                if am[i,j,:].abs().sum()!=0:
+                    if directed:
+                        file_object.write('\t\t<edge from="_' + str(i) + '" to="_' + str(j) + '">\n')
+                        file_object.write('\t\t\t<attr name="hidden_state">\n')
+                        file_object.write('\t\t\t\t<vector>')
+                        file_object.write(str(am[i,j,0]))
+                        for k in range(1,am.size(2)):
+                            file_object.write(', ' + str(am[i,j,k]))
+                        file_object.write('</vector>\n')
+                        file_object.write('\t\t\t</attr>\n')
+                        file_object.write('\t\t</edge>\n')
+                    else:
+                        file_object.write('\t\t<edge from="_' + str(i) + '" to="_' + str(j) + '"/>\n')
+        file_object.write('\t</graph>\n')
+        file_object.write('</gxl>\n')
 
 def accuracy(output, target):
     return precision_at_k(output, target, topk=(1,))

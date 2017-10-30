@@ -18,7 +18,7 @@ import os
 from options import Options
 import datasets
 from LogMetric import AverageMeter, Logger
-from utils import save_checkpoint, load_checkpoint, accuracy, knn
+from utils import save_checkpoint, load_checkpoint, accuracy, knn, write_gxl
 import models
 import GraphEditDistance
 
@@ -263,12 +263,43 @@ def main():
 
     # Evaluate best model in Test
     print('Test:')
-    loss_test, acc_test = validation(test_loader, net, args.ngpu > 0, criterion, evaluation)
+    #loss_test, acc_test = validation(test_loader, net, args.ngpu > 0, criterion, evaluation)
     print('Test Hausdorff distance:')
     test_loader = torch.utils.data.DataLoader(data_test,
                                               batch_size=1, collate_fn=datasets.collate_fn_multiple_size,
                                               num_workers=args.prefetch, pin_memory=True)
-    acc_test_hd = test(test_loader, train_loader, net, distance, args.ngpu > 0, knn)
+    # acc_test_hd = test(test_loader, train_loader, net, distance, args.ngpu > 0, knn)
+    
+    if args.write is not None:
+        if not os.path.exists(args.write):
+            os.makedirs(args.write)
+
+        directed = False if args.representation=='adj' else True
+        
+        # Train
+        write_dataset(data_train, net, args.ngpu>0, directed)
+        # Validation
+        write_dataset(data_valid, net, args.ngpu>0, directed)
+        # Test
+        write_dataset(data_test, net, args.ngpu>0, directed)
+
+
+def write_dataset(data, net, cuda, directed):
+    for i in range(len(data)):
+        v, am, _ = data[i]
+        g_size = torch.LongTensor([v.size(0)])
+
+        v, am = v.unsqueeze(0), am.unsqueeze(0)
+
+        if cuda:
+            v, am, g_size = v.cuda(), am.cuda(), g_size.cuda()
+        v, am = Variable(v, volatile=True), Variable(am, volatile=True)
+        # Compute features
+        v = net(v, am, g_size, output='nodes')
+
+        v, am = v.squeeze(0).data, am.squeeze(0).data
+
+        write_gxl( v, am, args.write + data.getId(i), directed)
 
 
 def adjust_learning_rate(optimizer, epoch):

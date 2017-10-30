@@ -25,6 +25,7 @@ class Options():
         parser.add_argument('--representation', type=str, default='adj', help='Adjacency matrix representation.', choices=['adj', 'feat'])
         parser.add_argument('--normalization', action='store_true', default=False, help='Normalize data nodes.')
         parser.add_argument('--hidden_size', type=int, default=64, help='Hidden state size.')
+        parser.add_argument('--write', type=str, default=None, help='If not None, write the whole dataset into memory before the Readout.')
         # Optimization options
         parser.add_argument('--epochs', '-e', type=int, default=1, help='Number of epochs to train.')
         parser.add_argument('--batch_size', '-b', type=int, default=375, help='Batch size.')

@@ -33,6 +33,9 @@ class Letters(data.Dataset):
 
         am = torch.FloatTensor(am)
         return node_labels, am, target
+    
+    def getId(self, index):
+        return self.graphs[index]
 
     def __len__(self):
         return len(self.labels)
