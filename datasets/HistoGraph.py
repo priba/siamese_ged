@@ -26,7 +26,7 @@ class HistoGraph(data.Dataset):
         self.normalization = normalization
 
     def __getitem__(self, index):
-        node_labels, am = create_graph_letter(self.root + self.graphs[index], representation=self.representation)
+        node_labels, am = create_graph_histo(self.root + self.graphs[index], representation=self.representation)
         target = self.labels[index]
         node_labels = torch.FloatTensor(node_labels)
 
@@ -69,7 +69,7 @@ class HistoGraphSiamese(data.Dataset):
         ind = self.pairs[index]
 
         # Graph 1
-        node_labels1, am1 = create_graph_letter(self.root + self.graphs[ind[0]], representation=self.representation)
+        node_labels1, am1 = create_graph_histo(self.root + self.graphs[ind[0]], representation=self.representation)
         target1 = self.labels[ind[0]]
         node_labels1 = torch.FloatTensor(node_labels1)
         am1 = torch.FloatTensor(am1)
@@ -78,7 +78,7 @@ class HistoGraphSiamese(data.Dataset):
             node_labels1 = du.normalize_mean(node_labels1)
 
         # Graph 2
-        node_labels2, am2 = create_graph_letter(self.root + self.graphs[ind[1]], representation=self.representation)
+        node_labels2, am2 = create_graph_histo(self.root + self.graphs[ind[1]], representation=self.representation)
         target2 = self.labels[ind[1]]
         node_labels2 = torch.FloatTensor(node_labels2)
         am2 = torch.FloatTensor(am2)
@@ -113,7 +113,7 @@ def getFileList(file_path):
     return elements, classes
 
 
-def create_graph_letter(file, representation='adj'):
+def create_graph_histo(file, representation='adj'):
 
     tree_gxl = ET.parse(file)
     root_gxl = tree_gxl.getroot()
