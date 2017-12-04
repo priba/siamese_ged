@@ -20,6 +20,11 @@ def load_data(dataset, data_path, representation, normalization, siamese=False):
             return load_letters_siamese(data_path, representation, normalization)
         else:
             return load_letters(data_path, representation, normalization)
+    elif dataset == 'histograph':
+        if siamese:
+            return load_histograph_siamese(data_path, representation, normalization)
+        else:
+            return load_histograph(data_path, representation, normalization)
     raise NameError(dataset + ' not implemented!')
 
 
@@ -37,6 +42,24 @@ def load_letters_siamese(data_path, representation='adj', normalization=False):
     data_train = datasets.LettersSiamese(data_path, 'train.cxl', representation, normalization)
     data_valid = datasets.LettersSiamese(data_path, 'validation.cxl', representation, normalization)
     data_test = datasets.LettersSiamese(data_path, 'test.cxl', representation, normalization)
+
+    return data_train, data_valid, data_test
+
+
+def load_histograph(data_path, representation='adj', normalization=False):
+    # Get data for train, validation and test
+    data_train = datasets.HistoGraph(data_path, '../../../../Set/Train.txt', representation, normalization)
+    data_valid = datasets.HistoGraph(data_path, '../../../../Set/Valid.txt', representation, normalization)
+    data_test = datasets.HistoGraph(data_path, '../../../../Set/Test.txt', representation, normalization)
+
+    return data_train, data_valid, data_test
+
+
+def load_histograph_siamese(data_path, representation='adj', normalization=False):
+    # Get data for train, validation and test
+    data_train = datasets.HistoGraphSiamese(data_path, '../../../../Set/Train.txt', representation, normalization)
+    data_valid = datasets.HistoGraphSiamese(data_path, '../../../../Set/Valid.txt', representation, normalization)
+    data_test = datasets.HistoGraphSiamese(data_path, '../../../../Set/Test.txt', representation, normalization)
 
     return data_train, data_valid, data_test
 

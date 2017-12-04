@@ -17,7 +17,7 @@ class Options():
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
         # Positional arguments
         parser.add_argument('data_path', type=str, help='Root for the dataset.')
-        parser.add_argument('dataset', type=str, choices=['letters'],
+        parser.add_argument('dataset', type=str, choices=['letters', 'histograph'],
                             help='Choose between letters.')
         # Model parameters
         parser.add_argument('--nlayers', type=int, default=2, help='Message passing + Update layers.')
