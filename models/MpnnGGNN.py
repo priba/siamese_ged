@@ -63,6 +63,8 @@ class MpnnGGNN(nn.Module):
 
         self.n_layers = n_layers
 
+        self.soft = nn.LogSoftmax(dim=1)
+
     def forward(self, h_in, am, g_size, output='embedding'):
         # Padding to some larger dimension d
         if self.args['out'] - h_in.size(2) > 0:
@@ -104,7 +106,7 @@ class MpnnGGNN(nn.Module):
             res = self.r([h_t, h_in], args={'node_mask': node_mask})
 
             if self.type == 'classification':
-                res = nn.LogSoftmax()(res)
+                res = self.soft(res)
             return res
         else:
             return h_t

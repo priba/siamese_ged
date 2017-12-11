@@ -55,7 +55,7 @@ class SoftHd(nn.Module):
 
         maximum = bdxy.max()
 
-        bdxy.masked_fill_(node_mask, float(np.inf))
+        bdxy.masked_fill_(node_mask, float(maximum))
 
         bm1, _ = bdxy.min(dim=2)
         bm2, _ = bdxy.min(dim=1)

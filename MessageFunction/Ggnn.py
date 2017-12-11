@@ -41,7 +41,9 @@ class Ggnn(nn.Module):
         e_aux = e_aux.squeeze().long()
         edge_output = torch.index_select(self.edge_matix, 0, e_aux)
 
-        h_w_rows = h_w[..., None].expand(h_w.size(0), h_v.size(1), h_w.size(1)).contiguous()
+        h_w_rows = h_w.unsqueeze(1)
+        h_w_rows = h_w_rows.expand(h_w.size(0), h_v.size(1), h_w.size(1))
+        h_w_rows = h_w_rows.contiguous()
 
         h_w_rows = h_w_rows.view(-1, self.in_size)
 

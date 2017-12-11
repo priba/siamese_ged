@@ -54,8 +54,7 @@ class Hd(nn.Module):
 
         maximum = bdxy.max()
 
-        #bdxy.masked_fill_(node_mask, float(maximum.data.cpu().numpy()[0]))
-        bdxy.masked_fill_(node_mask, float(np.inf))
+        bdxy.masked_fill_(node_mask, float(maximum))
 
         bm1, _ = bdxy.min(dim=2)
         bm2, _ = bdxy.min(dim=1)
