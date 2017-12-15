@@ -9,7 +9,9 @@ import torch
 import os
 import errno
 import numpy as np
+import matplotlib as plt
 import pdb
+
 __author__ = 'Pau Riba'
 __email__ = 'priba@cvc.uab.cat'
 
