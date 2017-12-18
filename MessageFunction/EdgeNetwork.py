@@ -54,20 +54,6 @@ class EdgeNetwork(nn.Module):
             m_new[edge_index[:, 0], edge_index[:, 1], :] = parameter_mat.bmm(
                 h_w[edge_index[:, 0], edge_index[:, 1], :].unsqueeze(2))
 
-
-        # edge_output = self.edge_matrix(e_vw)
-        # edge_output = edge_output.view(-1, self.out_size, self.in_size)
-        #
-        # h_w_rows = h_w.unsqueeze(1)
-        # h_w_rows = h_w_rows.expand(h_w.size(0), h_v.size(1), h_w.size(1))
-        # h_w_rows = h_w_rows.contiguous()
-        #
-        # h_w_rows = h_w_rows.view(-1, self.in_size)
-        #
-        # h_multiply = torch.bmm(edge_output, h_w_rows.unsqueeze(2))
-        #
-        # m_new = h_multiply.squeeze(-1)
-
         return m_new
 
     def out_ggnn(self, size_h, size_e, args):

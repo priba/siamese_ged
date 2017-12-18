@@ -80,26 +80,8 @@ class MpnnGGNN(nn.Module):
         node_mask = (node_mask < g_size.unsqueeze(-1).expand_as(node_mask)).float()
         node_mask = Variable(node_mask.unsqueeze(-1))
 
-        # Create a mask for edges
-        edge_mask = ((am!=0).float().sum(-1,keepdim=True) > 0).float()
-
-        e_aux = am.view(-1, am.size(3))
         # Layer
         for t in range(0, self.n_layers):
-            # h_aux = h_t.view(-1, h_t.size(2)).clone()
-            #
-            # m = self.m(h_t, h_aux, e_aux)
-            # m = m.view(h_t.size(0), h_t.size(1), -1, m.size(1))
-            #
-            # # Nodes without edge set message to 0
-            # m = edge_mask.expand_as(m) * m
-            #
-            # m = m.sum(1)
-            #
-            # h_t = self.u(h_t, m)
-            #
-            # # Delete virtual nodes
-            # h_t = node_mask.expand_as(h_t) * h_t
 
             # Apply one layer pass (Message + Update) per node
             h_aux = h_t.clone()
@@ -107,10 +89,6 @@ class MpnnGGNN(nn.Module):
                 m = self.m(h_t[:,v,:], h_aux, am[:,v])
                 m = m.view(h_t.size(0), h_t.size(1), -1)
 
-                #m.register_hook(lambda grad: print(grad==0))
-                 # Nodes without edge set message to 0
-                m = edge_mask[:,v].expand_as(m) * m
-                #m.register_hook(print)
                 m = m.sum(1, keepdim=True)
 
                 h_t[:, v, :] = self.u(h_aux[:,v,:].unsqueeze(1).contiguous(), m)
