@@ -173,7 +173,7 @@ def main():
 
     # Data Loader
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size,
-                                               batch_size=args.batch_size, shuffle=False,
+                                               batch_size=args.batch_size, shuffle=True,
                                                num_workers=args.prefetch, pin_memory=True)
     valid_loader = torch.utils.data.DataLoader(data_valid,
                                                batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size,

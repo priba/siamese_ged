@@ -89,9 +89,9 @@ class MpnnGGNN(nn.Module):
                 m = self.m(h_t[:,v,:], h_aux, am[:,v])
                 m = m.view(h_t.size(0), h_t.size(1), -1)
 
-                m = m.sum(1, keepdim=True)
+                m = m.sum(1)
 
-                h_t[:, v, :] = self.u(h_aux[:,v,:].unsqueeze(1).contiguous(), m)
+                h_t[:, v, :] = self.u(h_aux[:,v,:], m)
 
             # Delete virtual nodes
             h_t = node_mask.expand_as(h_t) * h_t

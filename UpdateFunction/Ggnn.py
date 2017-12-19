@@ -11,7 +11,6 @@
 
 from __future__ import print_function
 
-import torch
 import torch.nn as nn
 
 # Own modules
@@ -32,10 +31,8 @@ class Ggnn(nn.Module):
 
     # Update function
     def forward(self, h_v, m_v, args=None):
-        h_in = h_v.view(-1, h_v.size(2))
-        m_in = m_v.view(-1, m_v.size(2))
-        h_new = self.gru(m_in, h_in)
-        return h_new.view(h_v.size())
+        h_new = self.gru(m_v, h_v)
+        return h_new
 
     # Get the name of the used message function
     def get_definition(self):
