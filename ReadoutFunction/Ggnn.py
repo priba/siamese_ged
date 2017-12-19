@@ -42,8 +42,9 @@ class Ggnn(nn.Module):
         read = read.view(h[0].size(0), h[0].size(1), -1)
 
         read = args['node_mask'].expand_as(read) * read
+        read = read.sum(1)
 
-        return read.sum(1)
+        return read
 
     # Get the name of the used message function
     def get_definition(self):
