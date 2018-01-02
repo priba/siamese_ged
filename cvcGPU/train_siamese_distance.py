@@ -2,7 +2,7 @@ import os, sys
 
 # path
 
-path_data = "/home/priba/Datasets/IAM/Letter"
+path_data = "/home/priba/Datasets/IAM/Letter/"
 path_experiments = "/home/priba/nmp_ged/experiments/"
 
 # settings

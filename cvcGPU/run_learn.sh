@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python train_learn.py $1
+python ./cvcGPU/train_learn.py $1

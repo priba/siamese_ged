@@ -10,6 +10,6 @@ for i in `seq 0 $2`; do
         echo 'found' `squeue | grep $USER | wc -l` 'tasks, waiting'
     done
     echo "run $i"
-    sbatch --gres=gpu:1 ./scripts/$1.sh $i # script launch, modify if needed
+    sbatch --gres=gpu:1 ./cvcGPU/$1.sh $i # script launch, modify if needed
     sleep 1 # to make sure the queue is updated before next iter
 done
