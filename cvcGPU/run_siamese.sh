@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python train_siamese.py $1
+python ./cvcGPU/train_siamese.py $1
