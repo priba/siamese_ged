@@ -147,3 +147,37 @@ def create_graph_letter(file, representation='adj'):
             am[t,s,:] = [dist, du.angle_between(node_label[t], node_label[s])]
 
     return node_label, am
+
+if __name__ == '__main__':
+    from options import Options
+    from load_data import load_data
+
+    # Parse options
+    args = Options().parse()
+
+    # Dataset
+    data_train, data_valid, data_test = load_data(args.dataset, args.data_path, args.representation,
+                                                           args.normalization)
+
+    nodes = 0
+    edges = 0
+    for node_labels, am, target in data_train:
+        nodes = nodes + node_labels.size(0)
+        if len(list(torch.nonzero(am).size())) > 0:
+            edges = edges + torch.nonzero(am).size(0)/2.0
+
+    for node_labels, am, target in data_valid:
+        nodes = nodes + node_labels.size(0)
+        if len(list(torch.nonzero(am).size()))>0:
+            edges = edges + torch.nonzero(am).size(0)/2.0
+
+    for node_labels, am, target in data_test:
+        nodes = nodes + node_labels.size(0)
+        if len(list(torch.nonzero(am).size())) > 0:
+            edges = edges + torch.nonzero(am).size(0)/2.0
+
+    nodes = nodes/(len(data_train)+len(data_valid)+len(data_test)+0.0)
+    edges = edges / (len(data_train) + len(data_valid) + len(data_test)+0.0)
+
+    print('Nodes: ' + str(nodes))
+    print('Edges: ' + str(edges))
