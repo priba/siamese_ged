@@ -29,9 +29,12 @@ class Ggnn(nn.Module):
 
         self.gru = nn.GRUCell(self.message_size, self.hidden_state_size)
 
+        self.drop = nn.Dropout(p=0.2)
+
     # Update function
     def forward(self, h_v, m_v, args=None):
         h_new = self.gru(m_v, h_v)
+        h_new = self.drop(h_new)
         return h_new
 
     # Get the name of the used message function

@@ -3,18 +3,18 @@ import os, sys
 # path
 
 path_data = "/home/priba/Datasets/IAM/Letter/"
-path_experiments = "/home/priba/nmp_ged/experiments/"
+path_experiments = "/home/priba/nmp_ged/experiments_finetune/"
 
 # settings
 
 dbs = ["LOW", "MED", "HIGH"]
-layers = ["2", "3"]
+layers = ["3"]
 edges = ["adj", "feat"]
-distances = ["Hd", "SoftHd"]
-hstates = ["2", "64"]
+distances = ["SoftHd"]
+hstates = ["64"]
 
 runs = 5
-epochs = "100"
+epochs = "200"
 batch_size = "128"
 lr = str(1e-4)
 pipeline = "siamese_distance"
