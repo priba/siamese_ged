@@ -2,12 +2,12 @@ import os, sys
 
 # path
 
-path_data = "/home/priba/Datasets/IAM/Letter/"
-path_experiments = "/home/priba/nmp_ged/experiments_finetune/"
+path_data = "/home/priba/Datasets/GWHistoGraphs/Data/Word_Graphs/01_Skew/"
+path_experiments = "/home/priba/nmp_ged/experiments_histograph/"
 
 # settings
 
-dbs = ["LOW", "MED", "HIGH"]
+dbs = ["01_Keypoint", "05_Projection"]
 layers = ["3"]
 edges = ["adj", "feat"]
 distances = ["SoftHd"]
@@ -58,7 +58,7 @@ else:
         os.makedirs(dir_run)
 
     print "train NMP: " + dir_run + " .."
-    cmd = "python train_siamese_distance.py " + dir_db + " letters -s " + dir_checkpoint + " --log " + dir_log + " -lr " + lr + " --nlayers " + layer + " --hidden_size " + hstate + " -e " + epochs + " -b " + batch_size + " --representation " + edge + " --schedule " + epochs + " --distance " + distance + " > " + dir_run + "run.txt"
+    cmd = "python train_siamese_distance.py " + dir_db + " histograph -s " + dir_checkpoint + " --log " + dir_log + " -lr " + lr + " --nlayers " + layer + " --hidden_size " + hstate + " -e " + epochs + " -b " + batch_size + " --representation " + edge + " --schedule " + epochs + " --distance " + distance + " > " + dir_run + "run.txt"
     print cmd
     os.system(cmd)
     print ".. done."

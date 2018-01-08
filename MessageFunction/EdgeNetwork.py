@@ -37,7 +37,6 @@ class EdgeNetwork(nn.Module):
         else:
             self.edge_matrix = nn.Sequential(nn.Linear(self.e_size, self.out_size*self.in_size), nn.Tanh())
 
-        self.drop = nn.Dropout(p=0.2)
 
 
     # Message from h_v to h_w through e_vw
@@ -52,8 +51,6 @@ class EdgeNetwork(nn.Module):
         if edge_index.size():
             parameter_mat = self.edge_matrix(e_vw[edge_index[:, 0], edge_index[:, 1]])
             parameter_mat = parameter_mat.view(-1, self.out_size, self.in_size)
-
-            parameter_mat = self.drop(parameter_mat)
 
             m_new[edge_index[:, 0], edge_index[:, 1], :] = parameter_mat.bmm(
                 h_w[edge_index[:, 0], edge_index[:, 1], :].unsqueeze(2))

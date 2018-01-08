@@ -33,7 +33,6 @@ class Ggnn(nn.Module):
 
         self.edge_matix = nn.Parameter(torch.randn(len(self.e_label), self.out_size, self.in_size))
 
-        self.drop = nn.Dropout(p=0.2)
 
     # Message from h_v to h_w through e_vw
     # M_t(h^t_v, h^t_w, e_vw) = A_e_vw h^t_w
@@ -45,8 +44,6 @@ class Ggnn(nn.Module):
             edge_labels = torch.nonzero(e_vw.squeeze(2) == self.e_label[i])
             if edge_labels.size():
                 parameter_mat = self.edge_matix[i].unsqueeze(0).expand(edge_labels.size(0), self.edge_matix.size(1), self.edge_matix.size(2))
-
-                parameter_mat = self.drop(parameter_mat)
 
                 m_new[edge_labels[:,0],edge_labels[:,1],:] = parameter_mat.bmm(h_w[edge_labels[:,0],edge_labels[:,1],:].unsqueeze(2))
 
