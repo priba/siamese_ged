@@ -37,7 +37,7 @@ def test(test_loader, train_loader, net, cuda, evaluation):
         # Prepare input data
         if cuda:
             h1, am1, g_size1, target1 = h1.cuda(), am1.cuda(), g_size1.cuda(), target1.cuda()
-        h1, am1, target1 = Variable(h1), Variable(am1), Variable(target1)
+        h1, am1, g_size1, target1 = Variable(h1), Variable(am1), Variable(g_size1), Variable(target1)
 
         D_aux = []
         T_aux = []
@@ -45,7 +45,7 @@ def test(test_loader, train_loader, net, cuda, evaluation):
             # Prepare input data
             if cuda:
                 h2, am2, g_size2, target2 = h2.cuda(), am2.cuda(), g_size2.cuda(), target2.cuda()
-            h2, am2, target2 = Variable(h2), Variable(am2), Variable(target2)
+            h2, am2, g_size2, target2 = Variable(h2), Variable(am2), Variable(g_size2), Variable(target2)
 
             d = net(h1.expand(h2.size(0), h1.size(1), h1.size(2)),
                     am1.expand(am2.size(0), am1.size(1), am1.size(2), am1.size(2)),

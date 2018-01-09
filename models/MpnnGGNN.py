@@ -77,8 +77,9 @@ class MpnnGGNN(nn.Module):
         node_mask = torch.arange(0,h_in.size(1)).unsqueeze(0).expand(h_in.size(0), h_in.size(1)).long()
         if g_size.is_cuda:
             node_mask = node_mask.cuda()
+        node_mask = Variable(node_mask)
         node_mask = (node_mask < g_size.unsqueeze(-1).expand_as(node_mask)).float()
-        node_mask = Variable(node_mask.unsqueeze(-1))
+        node_mask = node_mask.unsqueeze(-1)
 
         # Layer
         for t in range(0, self.n_layers):

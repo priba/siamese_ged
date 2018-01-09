@@ -44,8 +44,8 @@ def train(train_loader, net, distance, optimizer, cuda, criterion, epoch):
             h1, am1, g_size1 = h1.cuda(), am1.cuda(), g_size1.cuda()
             h2, am2, g_size2 = h2.cuda(), am2.cuda(), g_size2.cuda()
             target = target.cuda()
-        h1, am1 = Variable(h1), Variable(am1)
-        h2, am2 = Variable(h2), Variable(am2)
+        h1, am1, g_size1 = Variable(h1), Variable(am1), Variable(g_size1)
+        h2, am2, g_size2 = Variable(h2), Variable(am2), Variable(g_size2)
         target = Variable(target)
 
 
@@ -70,10 +70,12 @@ def train(train_loader, net, distance, optimizer, cuda, criterion, epoch):
             node_mask1 = node_mask1.cuda()
             node_mask2 = node_mask2.cuda()
 
-        node_mask1 = (node_mask1 >= g_size1.unsqueeze(-1).unsqueeze(-1).expand_as(node_mask1))
-        node_mask2 = (node_mask2 >= g_size2.unsqueeze(-1).unsqueeze(-1).expand_as(node_mask2))
         node_mask1 = Variable(node_mask1)
         node_mask2 = Variable(node_mask2)
+
+        node_mask1 = (node_mask1 >= g_size1.unsqueeze(-1).unsqueeze(-1).expand_as(node_mask1))
+        node_mask2 = (node_mask2 >= g_size2.unsqueeze(-1).unsqueeze(-1).expand_as(node_mask2))
+
 
         output1.register_hook(lambda grad: grad.masked_fill_(node_mask1, 0))
         output2.register_hook(lambda grad: grad.masked_fill_(node_mask2,0))
@@ -117,8 +119,8 @@ def validation(test_loader, net, distance, cuda, criterion, evaluation):
             h1, am1, g_size1 = h1.cuda(), am1.cuda(), g_size1.cuda()
             h2, am2, g_size2 = h2.cuda(), am2.cuda(), g_size2.cuda()
             target = target.cuda()
-        h1, am1 = Variable(h1, volatile=True), Variable(am1, volatile=True)
-        h2, am2 = Variable(h2, volatile=True), Variable(am2, volatile=True)
+        h1, am1, g_size1 = Variable(h1, volatile=True), Variable(am1, volatile=True), Variable(g_size1, volatile=True)
+        h2, am2, g_size2 = Variable(h2, volatile=True), Variable(am2, volatile=True), Variable(g_size2, volatile=True)
         target = Variable(target, volatile=True)
 
         # Measure data loading time
@@ -163,7 +165,7 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
         # Prepare input data
         if cuda:
             h1, am1, g_size1, target1 = h1.cuda(), am1.cuda(), g_size1.cuda(), target1.cuda()
-        h1, am1, target1 = Variable(h1, volatile=True), Variable(am1, volatile=True), Variable(target1, volatile=True)
+        h1, am1, g_size1, target1 = Variable(h1, volatile=True), Variable(am1, volatile=True), Variable(g_size1, volatile=True), Variable(target1, volatile=True)
 
         # Compute features
         output1 = net(h1, am1, g_size1, output='nodes')
@@ -174,7 +176,7 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
             # Prepare input data
             if cuda:
                 h2, am2, g_size2, target2 = h2.cuda(), am2.cuda(), g_size2.cuda(), target2.cuda()
-            h2, am2, target2 = Variable(h2, volatile=True), Variable(am2, volatile=True), Variable(target2, volatile=True)
+            h2, am2, g_size2, target2 = Variable(h2, volatile=True), Variable(am2, volatile=True), Variable(g_size2, volatile=True), Variable(target2, volatile=True)
 
             # Compute features
             output2 = net(h2, am2, g_size2, output='nodes')
@@ -208,10 +210,16 @@ def main():
     print('Prepare dataset')
     # Dataset
     data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization, siamese=True)
-    
-    train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 2*15*50*(50-1), replacement=True)
-    valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(torch.multinomial(torch.DoubleTensor(data_valid.getWeights()), 50*(50-1), replacement=False))
-    
+
+
+    if args.dataset == 'letters':
+        train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 2*15*50*(50-1), replacement=True)
+        valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(torch.multinomial(torch.DoubleTensor(data_valid.getWeights()), 50*(50-1), replacement=False))
+    elif args.dataset == 'histograph':
+        train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 3*(3-1)*30*2, replacement=True)
+        valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(
+            torch.multinomial(torch.DoubleTensor(data_valid.getWeights()), 3*(3-1)*30*2, replacement=False))
+
     # Data Loader
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size_siamese,
                                                batch_size=args.batch_size, sampler=train_sampler,

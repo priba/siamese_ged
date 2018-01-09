@@ -44,8 +44,8 @@ def train(train_loader, net, optimizer, cuda, criterion, epoch):
             h1, am1, g_size1 = h1.cuda(), am1.cuda(), g_size1.cuda()
             h2, am2, g_size2 = h2.cuda(), am2.cuda(), g_size2.cuda()
             target = target.cuda()
-        h1, am1 = Variable(h1), Variable(am1)
-        h2, am2 = Variable(h2), Variable(am2)
+        h1, am1, g_size1 = Variable(h1), Variable(am1), Variable(g_size1)
+        h2, am2, g_size2 = Variable(h2), Variable(am2), Variable(g_size2)
         target = Variable(target)
 
         # Measure data loading time
@@ -96,8 +96,8 @@ def validation(test_loader, net, cuda, criterion, evaluation):
             h1, am1, g_size1 = h1.cuda(), am1.cuda(), g_size1.cuda()
             h2, am2, g_size2 = h2.cuda(), am2.cuda(), g_size2.cuda()
             target = target.cuda()
-        h1, am1 = Variable(h1, volatile=True), Variable(am1, volatile=True)
-        h2, am2 = Variable(h2, volatile=True), Variable(am2, volatile=True)
+        h1, am1, g_size1 = Variable(h1, volatile=True), Variable(am1, volatile=True), Variable(g_size1, volatile=True)
+        h2, am2, g_size2 = Variable(h2, volatile=True), Variable(am2, volatile=True), Variable(g_size2, volatile=True)
         target = Variable(target, volatile=True)
 
         # Measure data loading time
@@ -142,7 +142,7 @@ def test(test_loader, train_loader, net, cuda, evaluation):
         # Prepare input data
         if cuda:
             h1, am1, g_size1, target1 = h1.cuda(), am1.cuda(), g_size1.cuda(), target1.cuda()
-        h1, am1, target1 = Variable(h1, volatile=True), Variable(am1, volatile=True), Variable(target1, volatile=True)
+        h1, am1, g_size1, target1 = Variable(h1, volatile=True), Variable(am1, volatile=True), Variable(g_size1, volatile=True), Variable(target1, volatile=True)
 
         # Compute features
         output1 = net(h1, am1, g_size1)
@@ -153,7 +153,7 @@ def test(test_loader, train_loader, net, cuda, evaluation):
             # Prepare input data
             if cuda:
                 h2, am2, g_size2, target2 = h2.cuda(), am2.cuda(), g_size2.cuda(), target2.cuda()
-            h2, am2, target2 = Variable(h2, volatile=True), Variable(am2, volatile=True), Variable(target2, volatile=True)
+            h2, am2, g_size2, target2 = Variable(h2, volatile=True), Variable(am2, volatile=True), Variable(g_size2, volatile=True), Variable(target2, volatile=True)
 
             # Compute features
             output2 = net(h2, am2, g_size2)

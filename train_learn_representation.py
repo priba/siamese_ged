@@ -40,7 +40,7 @@ def train(train_loader, net, optimizer, cuda, criterion, epoch):
         # Prepare input data
         if cuda:
             h, am, g_size, target = h.cuda(), am.cuda(), g_size.cuda(), target.cuda()
-        h, am, target = Variable(h), Variable(am), Variable(target)
+        h, am, g_size, target = Variable(h), Variable(am), Variable(g_size), Variable(target)
 
         # Measure data loading time
         data_time.update(time.time() - end)
@@ -84,7 +84,7 @@ def validation(test_loader, net, cuda, criterion, evaluation):
         # Prepare input data
         if cuda:
             h, am, g_size, target = h.cuda(), am.cuda(), g_size.cuda(), target.cuda()
-        h, am, target = Variable(h, volatile=True), Variable(am, volatile=True), Variable(target, volatile=True)
+        h, am, g_size, target = Variable(h, volatile=True), Variable(am, volatile=True), Variable(g_size, volatile=True), Variable(target, volatile=True)
 
         # Measure data loading time
         data_time.update(time.time() - end)
@@ -125,7 +125,7 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
         # Prepare input data
         if cuda:
             h1, am1, g_size1, target1 = h1.cuda(), am1.cuda(), g_size1.cuda(), target1.cuda()
-        h1, am1, target1 = Variable(h1, volatile=True), Variable(am1, volatile=True), Variable(target1, volatile=True)
+        h1, am1, g_size1, target1 = Variable(h1, volatile=True), Variable(am1, volatile=True), Variable(g_size1, volatile=True), Variable(target1, volatile=True)
 
         # Compute features
         output1 = net(h1, am1, g_size1, output='nodes')
@@ -136,7 +136,7 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
             # Prepare input data
             if cuda:
                 h2, am2, g_size2, target2 = h2.cuda(), am2.cuda(), g_size2.cuda(), target2.cuda()
-            h2, am2, target2 = Variable(h2, volatile=True), Variable(am2, volatile=True), Variable(target2, volatile=True)
+            h2, am2, g_size2, target2 = Variable(h2, volatile=True), Variable(am2, volatile=True), Variable(g_size2, volatile=True), Variable(target2, volatile=True)
 
             # Compute features
             output2 = net(h2, am2, g_size2, output='nodes')
