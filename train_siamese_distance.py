@@ -194,15 +194,17 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
         if evaluation.__name__ == 'knn':
             bacc = evaluation(D, target1, train_target, k=eval_k)
         else:
-            _, i = torch.min(D, 0)
-            D = torch.cat([D[:int(i)], D[int(i) + 1:]])
-            train_target = torch.cat([train_target[:int(i)], train_target[int(i) + 1:]])
+            _, ind_min = torch.min(D, 0)
+            D = torch.cat([D[:int(ind_min)], D[int(ind_min) + 1:]])
+            train_target = torch.cat([train_target[:int(ind_min)], train_target[int(ind_min) + 1:]])
             bacc = evaluation(D, target1, train_target)
 
         # Measure elapsed time
         acc.update(bacc, h1.size(0))
         batch_time.update(time.time() - end)
         end = time.time()
+
+        print(str(i)+'/'+str(len(test_loader)))
 
     print('Test distance:')
     if evaluation.__name__ == 'knn':
@@ -218,7 +220,6 @@ def main():
     print('Prepare dataset')
     # Dataset
     data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization, siamese=True)
-
 
     if args.dataset == 'letters':
         train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 2*15*50*(50-1), replacement=True)
@@ -336,7 +337,7 @@ def main():
     data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization)
     # Data Loader
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size,
-                                               batch_size=args.batch_size,
+                                               batch_size=3*args.batch_size,
                                                num_workers=args.prefetch, pin_memory=True)
     # The batchsize is given by the train_loader
     test_loader = torch.utils.data.DataLoader(data_test,

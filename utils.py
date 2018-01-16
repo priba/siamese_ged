@@ -128,7 +128,8 @@ def knn(D, target, train_target, k=(1,)):
 def meanAveragePrecision(D, target, train_target):
     y_true = train_target == target
     y_score = (1+D.max())-D
-
+    if y_true.float().sum() == 0:
+        return 1.0
     return average_precision_score(y_true.data.cpu().numpy(), y_score.data.cpu().numpy())
 
 

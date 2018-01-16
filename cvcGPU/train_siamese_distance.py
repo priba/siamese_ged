@@ -1,22 +1,27 @@
 import os, sys
 
 # path
-
-path_data = "/home/priba/Datasets/GWHistoGraphs/Data/Word_Graphs/01_Skew/"
-path_experiments = "/home/priba/nmp_ged/experiments_histograph/"
+path_data = "/media/priba/PPAP/NeuralMessagePassing/data/GWHistoGraphs/Data/Word_Graphs/01_Skew/"
+path_experiments = "/media/priba/PPAP/SwitzerlandStay/nmp_ged/Results_Histograph/experiments/"
+#path_data = "/media/priba/PPAP/NeuralMessagePassing/data/IAM/Letter/"
+#path_experiments = "/media/priba/PPAP/SwitzerlandStay/nmp_ged/experiments_normalize_distance/"
 
 # settings
-
-dbs = ["01_Keypoint", "05_Projection"]
+#dataset = "letters"
+dataset = "histographretrieval"
+dbs = ["cv1", "cv2", "cv3", "cv4"]
+#dbs = ["01_Keypoint", "05_Projection"]
+#dbs = ["LOW", "MED", "HIGH"]
 layers = ["3"]
-edges = ["adj", "feat"]
+edges = ["feat"]
 distances = ["SoftHd"]
 hstates = ["64"]
 
 runs = 5
 epochs = "200"
-batch_size = "128"
-lr = str(1e-4)
+batch_size = "32"
+#lr = str(1e-2)
+lr = str(1e-2)
 pipeline = "siamese_distance"
 
 # params
@@ -58,7 +63,15 @@ else:
         os.makedirs(dir_run)
 
     print "train NMP: " + dir_run + " .."
-    cmd = "python train_siamese_distance.py " + dir_db + " histograph -s " + dir_checkpoint + " --log " + dir_log + " -lr " + lr + " --nlayers " + layer + " --hidden_size " + hstate + " -e " + epochs + " -b " + batch_size + " --representation " + edge + " --schedule " + epochs + " --distance " + distance + " > " + dir_run + "run.txt"
+
+    if len(sys.argv) == 2:
+        cmd = "python train_siamese_distance.py " + dir_db + " " + dataset + " -s " + dir_checkpoint + " --log " + dir_log + " -lr " + lr + " --nlayers " + layer + " --hidden_size " + hstate + " -e " + epochs + " -b " + batch_size + " --representation " + edge + " --schedule " + epochs + " --distance " + distance + " > " + dir_run + "run.txt"
+    elif sys.argv[2]=='write':
+        dir_write = path_experiments + "data/" + dir_param
+        dir_checkpoint = dir_checkpoint + 'checkpoint.pth'
+        cmd = "python train_siamese_distance.py " + dir_db + " " + dataset + " -t -l " + dir_checkpoint + " -lr " + lr + " --nlayers " + layer + " --hidden_size " + hstate + " -e " + epochs + " -b " + batch_size + " --representation " + edge + " --schedule " + epochs + " --distance " + distance + " --write " + dir_write
+    
     print cmd
     os.system(cmd)
     print ".. done."
+
