@@ -5,58 +5,69 @@ import torch.utils.data as data
 import xml.etree.ElementTree as ET
 import numpy as np
 import data_utils as du
+import os
 import itertools
-
-import pdb
 
 __author__ = "Pau Riba"
 __email__ = "priba@cvc.uab.cat"
 
 
 class HistoGraphRetrieval(data.Dataset):
-    def __init__(self, root_path, id_files, classes_files, unique_labels, representation='adj', normalization=False):
-        self.root = root_path
+    def __init__(self, root_path, gxl_path, file_list, keywords, representation='adj', normalization=False, test=False):
+        self.root = root_path + gxl_path
         self.file_list = file_list
-        self.graphs, self.labels = getFileList(self.root + self.file_list)
 
-        self.unique_labels = np.unique(self.labels)
-        self.labels = [np.where(target == self.unique_labels)[0][0] for target in self.labels]
+        self.graphs, self.labels = getFileList(root_path + self.file_list)
+        idx = [os.path.isfile(self.root + g) for g in self.graphs]
+        self.graphs = np.array(self.graphs)[idx]
+        self.labels = np.array(self.labels)[idx]
+
+        with open(root_path + keywords, 'r') as f:
+            self.key_labels = f.read().splitlines()
+
+        self.key_idx = [i for key in self.key_labels for i, l in enumerate(self.labels) if l == key]
+        self.labels = [self.key_labels.index(l) if l in self.key_labels else len(self.key_labels) for l in
+                       self.labels]
+        if test:
+
+            self.labels = np.array(self.labels)[self.key_idx]
+            self.graphs = self.graphs[self.key_idx]
 
         self.representation = representation
         self.normalization = normalization
 
     def __getitem__(self, index):
+
+        # Graph 1
         node_labels, am = create_graph_histo(self.root + self.graphs[index], representation=self.representation)
         target = self.labels[index]
         node_labels = torch.FloatTensor(node_labels)
+        am = torch.FloatTensor(am)
 
         if self.normalization:
             node_labels = du.normalize_mean(node_labels)
 
-        am = torch.FloatTensor(am)
         return node_labels, am, target
-    
-    def getId(self, index):
-        return self.graphs[index]
 
     def __len__(self):
         return len(self.labels)
 
     def getTargetSize(self):
-        return len(self.unique_labels)
+        return None
 
 
 class HistoGraphRetrievalSiamese(data.Dataset):
-    def __init__(self, root_path, file_list, representation='adj', normalization=False):
-        self.root = root_path
+    def __init__(self, root_path, gxl_path, file_list, representation='adj', normalization=False):
+        self.root = root_path + gxl_path
         self.file_list = file_list
 
-        self.graphs, self.labels = getFileList(self.root + self.file_list)
-
-        self.unique_labels = np.unique(self.labels)
-        self.labels = [np.where(target == self.unique_labels)[0][0] for target in self.labels]
+        self.graphs, self.labels = getFileList(root_path + self.file_list)
+        idx = [os.path.isfile(self.root + g) for g in self.graphs]
+        self.graphs = np.array(self.graphs)[idx]
+        self.labels = np.array(self.labels)[idx]
 
         self.pairs = list(itertools.permutations(range(len(self.labels)), 2))
+
         self.representation = representation
         self.normalization = normalization
 
@@ -107,7 +118,7 @@ def getFileList(file_path):
     classes = []
     elements = []
     for line in lines:        
-        c, f = line.split(' ')[:2]
+        f, c = line.split(' ')[:2]
         classes += [c]
         elements += [f + '.gxl']
     return elements, classes

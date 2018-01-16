@@ -18,7 +18,7 @@ import os
 from options import Options
 import datasets
 from LogMetric import AverageMeter, Logger
-from utils import save_checkpoint, load_checkpoint, siamese_accuracy, knn, write_gxl
+from utils import save_checkpoint, load_checkpoint, siamese_accuracy, knn, meanAveragePrecision, write_gxl
 import models
 import GraphEditDistance
 import LossFunction
@@ -191,7 +191,13 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
         D = torch.cat(D_aux)
         train_target = torch.cat(T_aux, 0)
 
-        bacc = evaluation(D, target1, train_target, k=eval_k)
+        if evaluation.__name__ == 'knn':
+            bacc = evaluation(D, target1, train_target, k=eval_k)
+        else:
+            _, i = torch.min(D, 0)
+            D = torch.cat([D[:int(i)], D[int(i) + 1:]])
+            train_target = torch.cat([train_target[:int(i)], train_target[int(i) + 1:]])
+            bacc = evaluation(D, target1, train_target)
 
         # Measure elapsed time
         acc.update(bacc, h1.size(0))
@@ -199,9 +205,11 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
         end = time.time()
 
     print('Test distance:')
-    for i in range(len(eval_k)):
-        print('\t* {k}-NN; Average Acc {acc:.3f}; Avg Time x Batch {b_time.avg:.3f}'.format(k=eval_k[i], acc=acc.avg[i], b_time=batch_time))
-
+    if evaluation.__name__ == 'knn':
+        for i in range(len(eval_k)):
+            print('\t* {k}-NN; Average Acc {acc:.3f}; Avg Time x Batch {b_time.avg:.3f}'.format(k=eval_k[i], acc=acc.avg[i], b_time=batch_time))
+    else:
+        print('\t* MAP {acc:.3f}; Avg Time x Batch {b_time.avg:.3f}'.format(acc=acc.avg, b_time=batch_time))
     return acc
 
 
@@ -219,6 +227,11 @@ def main():
         train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 3*(3-1)*30*2, replacement=True)
         valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(
             torch.multinomial(torch.DoubleTensor(data_valid.getWeights()), 3*(3-1)*30*2, replacement=False))
+    else:
+        train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 3 * (3 - 1) * 30 * 2,
+                                                                       replacement=True)
+        valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(
+            torch.multinomial(torch.DoubleTensor(data_valid.getWeights()), 3 * (3 - 1) * 30 * 2, replacement=False))
 
     # Data Loader
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size_siamese,
@@ -234,10 +247,10 @@ def main():
     print('Create model')
     if args.representation=='adj':
         print('\t* Discrete Edges')
-        net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=args.hidden_size, message_size=args.hidden_size, n_layers=args.nlayers, discrete_edge=True, out_type='regression', target_size=data_train.getTargetSize())
+        net = models.MpnnGGNN(in_size=2, e=[1], hidden_state_size=args.hidden_size, message_size=args.hidden_size, n_layers=args.nlayers, discrete_edge=True, out_type='regression', target_size=None)
     elif args.representation=='feat':
         print('\t* Feature Edges')
-        net = models.MpnnGGNN(in_size=2, e=2, hidden_state_size=args.hidden_size, message_size=args.hidden_size, n_layers=args.nlayers, discrete_edge=False, out_type='regression', target_size=data_train.getTargetSize())
+        net = models.MpnnGGNN(in_size=2, e=2, hidden_state_size=args.hidden_size, message_size=args.hidden_size, n_layers=args.nlayers, discrete_edge=False, out_type='regression', target_size=None)
     else:
         raise NameError('Representation ' + args.representation + ' not implemented!')
 
@@ -317,7 +330,7 @@ def main():
 
     # Evaluate best model in Test
     print('Test:')
-    loss_test, acc_test = validation(test_loader, net, distance, args.ngpu > 0, criterion, evaluation)
+    #loss_test, acc_test = validation(test_loader, net, distance, args.ngpu > 0, criterion, evaluation)
 
     # Dataset not siamese for test
     data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization)
@@ -330,7 +343,11 @@ def main():
                                               batch_size=1, collate_fn=datasets.collate_fn_multiple_size,
                                               num_workers=args.prefetch, pin_memory=True)
     print('Test k-NN classifier')
-    acc_test_hd = test(test_loader, train_loader, net, distance, args.ngpu > 0, knn)
+    if args.dataset =='histographretrieval':
+        evaluation = meanAveragePrecision
+    else:
+        evaluation = knn
+    acc_test_hd = test(test_loader, train_loader, net, distance, args.ngpu > 0, evaluation)
 
     if args.write is not None:
         if not os.path.exists(args.write):
@@ -355,7 +372,7 @@ def write_dataset(data, net, cuda, directed):
 
         if cuda:
             v, am, g_size = v.cuda(), am.cuda(), g_size.cuda()
-        v, am = Variable(v, volatile=True), Variable(am, volatile=True)
+        v, am, g_size = Variable(v, volatile=True), Variable(am, volatile=True), Variable(g_size, volatile=True)
         # Compute features
         v = net(v, am, g_size, output='nodes')
 

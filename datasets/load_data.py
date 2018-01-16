@@ -25,7 +25,7 @@ def load_data(dataset, data_path, representation, normalization, siamese=False):
             return load_histograph_siamese(data_path, representation, normalization)
         else:
             return load_histograph(data_path, representation, normalization)
-    elif dataset == 'histograph':
+    elif dataset == 'histographretrieval':
         if siamese:
             return load_histograph_retrieval_siamese(data_path, representation, normalization)
         else:
@@ -68,24 +68,18 @@ def load_histograph_siamese(data_path, representation='adj', normalization=False
 
     return data_train, data_valid, data_test
 
+
 def load_histograph_retrieval(data_path, representation='adj', normalization=False):
-    # Get data for train, validation and test
-    
-    id_train, classes_train = datasets.HistoGraphRetrieval.getFileList(data_path + 'GT.txt')
-    id_test, classes_test = datasets.HistoGraphRetrieval.getFileList(data_path + 'words.txt')
-    id_valid, classes_valid = datasets.HistoGraphRetrieval.getFileList(data_path + 'Valid/words.txt')
-
-    u_classes = np.unique(classes_train)
-
-    data_train = datasets.HistoGraphRetrieval(data_path, id_train, classes_train, u_classes, representation, normalization)
-    data_valid = datasets.HistoGraphRetrieval(data_path, id_valid, classes_valid, u_classes, representation, normalization)
-    data_test = datasets.HistoGraphRetrieval(data_path, id_test, classes_test, u_classes, representation, normalization)
+    data_train = datasets.HistoGraphRetrieval(data_path, '../../../02_GXL/01_GW/01_Keypoint/4/', 'test.txt', 'keywords.txt', representation, normalization)
+    data_valid = None
+    data_test = datasets.HistoGraphRetrieval(data_path, '../../../02_GXL/01_GW/01_Keypoint/4/', 'test.txt', 'keywords.txt', representation, normalization, test=True)
     return data_train, data_valid, data_test
 
+
 def load_histograph_retrieval_siamese(data_path, representation='adj', normalization=False):
-    data_train = datasets.HistoGraphRetrievalSiamese(data_path, '../../../../Set/Train.txt', representation, normalization)
-    data_train = datasets.HistoGraphRetrievalSiamese(data_path, '../../../../Set/Train.txt', representation, normalization)
-    data_train = datasets.HistoGraphRetrievalSiamese(data_path, '../../../../Set/Train.txt', representation, normalization)
+    data_train = datasets.HistoGraphRetrievalSiamese(data_path, '../../../02_GXL/01_GW/01_Keypoint/4/', 'train.txt', representation, normalization)
+    data_valid = datasets.HistoGraphRetrievalSiamese(data_path, '../../../02_GXL/01_GW/01_Keypoint/4/', 'valid.txt', representation, normalization)
+    data_test = datasets.HistoGraphRetrievalSiamese(data_path, '../../../02_GXL/01_GW/01_Keypoint/4/', 'test.txt', representation, normalization)
     return data_train, data_valid, data_test
 
 

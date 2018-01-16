@@ -10,7 +10,7 @@ import os
 import errno
 import numpy as np
 import matplotlib as plt
-import pdb
+from sklearn.metrics import average_precision_score
 
 __author__ = 'Pau Riba'
 __email__ = 'priba@cvc.uab.cat'
@@ -123,6 +123,13 @@ def knn(D, target, train_target, k=(1,)):
 
         res.append(correct_k*(100.0 / batch_size))
     return torch.FloatTensor(res)
+
+
+def meanAveragePrecision(D, target, train_target):
+    y_true = train_target == target
+    y_score = (1+D.max())-D
+
+    return average_precision_score(y_true.data.cpu().numpy(), y_score.data.cpu().numpy())
 
 
 def nn_prediction(pred, axis=1):

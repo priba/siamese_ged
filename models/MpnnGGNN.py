@@ -53,8 +53,9 @@ class MpnnGGNN(nn.Module):
         # Define Update
         self.u = UpdateFunction.Ggnn(args={'in_m': message_size, 'out': hidden_state_size})
 
-        # Define Readout
-        self.r = ReadoutFunction.Ggnn(args={'in': in_size, 'hidden': hidden_state_size, 'target': target_size})
+        if target_size is not None:
+            # Define Readout
+            self.r = ReadoutFunction.Ggnn(args={'in': in_size, 'hidden': hidden_state_size, 'target': target_size})
 
         self.type = out_type.lower()
 
