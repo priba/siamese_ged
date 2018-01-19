@@ -70,16 +70,16 @@ def load_histograph_siamese(data_path, representation='adj', normalization=False
 
 
 def load_histograph_retrieval(data_path, representation='adj', normalization=False):
-    data_train = datasets.HistoGraphRetrieval(data_path, '../../../02_GXL/01_GW/01_Keypoint/4/', 'test.txt', 'keywords.txt', representation, normalization)
+    data_train = datasets.HistoGraphRetrieval(data_path, '../../../02_GXL/02_PAR/01_Keypoint/2/', 'test.txt', 'keywords.txt', representation, normalization)
     data_valid = None
-    data_test = datasets.HistoGraphRetrieval(data_path, '../../../02_GXL/01_GW/01_Keypoint/4/', 'test.txt', 'keywords.txt', representation, normalization, test=True)
+    data_test = datasets.HistoGraphRetrieval(data_path, '../../../02_GXL/02_PAR/01_Keypoint/2/', 'test.txt', 'keywords.txt', representation, normalization, test=True)
     return data_train, data_valid, data_test
 
 
 def load_histograph_retrieval_siamese(data_path, representation='adj', normalization=False):
-    data_train = datasets.HistoGraphRetrievalSiamese(data_path, '../../../02_GXL/01_GW/01_Keypoint/4/', 'train.txt', representation, normalization)
-    data_valid = datasets.HistoGraphRetrievalSiamese(data_path, '../../../02_GXL/01_GW/01_Keypoint/4/', 'valid.txt', representation, normalization)
-    data_test = datasets.HistoGraphRetrievalSiamese(data_path, '../../../02_GXL/01_GW/01_Keypoint/4/', 'test.txt', representation, normalization)
+    data_train = datasets.HistoGraphRetrievalSiamese(data_path, '../../../02_GXL/02_PAR/01_Keypoint/2/', 'train.txt', representation, normalization)
+    data_valid = datasets.HistoGraphRetrievalSiamese(data_path, '../../../02_GXL/02_PAR/01_Keypoint/2/', 'valid.txt', representation, normalization)
+    data_test = datasets.HistoGraphRetrievalSiamese(data_path, '../../../02_GXL/02_PAR/01_Keypoint/2/', 'test.txt', representation, normalization)
     return data_train, data_valid, data_test
 
 

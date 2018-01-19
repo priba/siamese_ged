@@ -195,8 +195,16 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
             bacc = evaluation(D, target1, train_target, k=eval_k)
         else:
             _, ind_min = torch.min(D, 0)
-            D = torch.cat([D[:int(ind_min)], D[int(ind_min) + 1:]])
-            train_target = torch.cat([train_target[:int(ind_min)], train_target[int(ind_min) + 1:]])
+            ind_min = int(ind_min)
+            if ind_min == 0:
+                D = D[1:]
+                train_target = train_target[1:]
+            elif ind_min+1 == D.size(0):
+                D = D[:-1]
+                train_target = train_target[:-1]
+            else:
+                D = torch.cat([D[:int(ind_min)], D[int(ind_min) + 1:]])
+                train_target = torch.cat([train_target[:int(ind_min)], train_target[int(ind_min) + 1:]])
             bacc = evaluation(D, target1, train_target)
 
         # Measure elapsed time
@@ -337,7 +345,7 @@ def main():
     data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization)
     # Data Loader
     train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size,
-                                               batch_size=3*args.batch_size,
+                                               batch_size=args.batch_size,
                                                num_workers=args.prefetch, pin_memory=True)
     # The batchsize is given by the train_loader
     test_loader = torch.utils.data.DataLoader(data_test,
