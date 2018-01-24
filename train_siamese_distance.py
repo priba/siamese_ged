@@ -226,30 +226,31 @@ def test(test_loader, train_loader, net, distance, cuda, evaluation):
 def main():
 
     print('Prepare dataset')
-    # Dataset
-    data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization, siamese=True)
+    if not args.test:
+        # Dataset
+        data_train, data_valid, data_test = datasets.load_data(args.dataset, args.data_path, args.representation, args.normalization, siamese=True)
 
-    if args.dataset == 'letters':
-        train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 2*15*50*(50-1), replacement=True)
-        valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(torch.multinomial(torch.DoubleTensor(data_valid.getWeights()), 50*(50-1), replacement=False))
-    elif args.dataset == 'histograph':
-        train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 3*(3-1)*30*2, replacement=True)
-        valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(
-            torch.multinomial(torch.DoubleTensor(data_valid.getWeights()), 3*(3-1)*30*2, replacement=False))
-    else:
-        train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 3 * (3 - 1) * 30 * 2,
+        if args.dataset == 'letters':
+            train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 2*15*50*(50-1), replacement=True)
+            valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(torch.multinomial(torch.DoubleTensor(data_valid.getWeights()), 50*(50-1), replacement=False))
+        elif args.dataset == 'histograph':
+            train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 3*(3-1)*30*2, replacement=True)
+            valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(
+                torch.multinomial(torch.DoubleTensor(data_valid.getWeights()), 3*(3-1)*30*2, replacement=False))
+        else:
+            train_sampler = torch.utils.data.sampler.WeightedRandomSampler(data_train.getWeights(), 3 * (3 - 1) * 30 * 2,
                                                                        replacement=True)
-        valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(
-            torch.multinomial(torch.DoubleTensor(data_valid.getWeights()), 3 * (3 - 1) * 30 * 2, replacement=False))
+            valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(
+                torch.multinomial(torch.DoubleTensor(data_valid.getWeights()), 3 * (3 - 1) * 30 * 2, replacement=False))
 
-    # Data Loader
-    train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size_siamese,
+        # Data Loader
+        train_loader = torch.utils.data.DataLoader(data_train, collate_fn=datasets.collate_fn_multiple_size_siamese,
                                                batch_size=args.batch_size, sampler=train_sampler,
                                                num_workers=args.prefetch, pin_memory=True)
-    valid_loader = torch.utils.data.DataLoader(data_valid, sampler=valid_sampler,
+        valid_loader = torch.utils.data.DataLoader(data_valid, sampler=valid_sampler,
                                                batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size_siamese,
                                                num_workers=args.prefetch, pin_memory=True)
-    test_loader = torch.utils.data.DataLoader(data_test,
+        test_loader = torch.utils.data.DataLoader(data_test,
                                               batch_size=args.batch_size, collate_fn=datasets.collate_fn_multiple_size_siamese,
                                               num_workers=args.prefetch, pin_memory=True)
 
