@@ -1,8 +1,8 @@
 # Learning Graph Distances with Message PassingNeural Networks
 
-Neural message passing for graph retrieval implementation.
+Siamese Neural message passing for graph retrieval implementation.
 
-Pau Riba, Andreas Fischer, Josep Lladós and Alicia Fornes, Learning Graph Distances with Message PassingNeural Networks, ICPR2018 (Submitted)
+* Pau Riba, Andreas Fischer, Josep Lladós and Alicia Fornes, Learning Graph Distances with Message PassingNeural Networks, ICPR2018 (Submitted)
 
 ## Installation
 
