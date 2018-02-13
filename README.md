@@ -9,27 +9,33 @@ Pau Riba, Andreas Fischer, Josep Lladós and Alicia Fornes, Learning Graph Dista
     $ pip install -r requirements.txt
 
 ## Methodology.
+
 ### Graph Distance
+
+Compute the distance using raw graphs without training:
+
     $ python no_train_hausdorff.py
 
 ### Learn Representation
-    
+
+Trains a classifier. In test time discards the readout and uses a graph distance.
+
     $ python train_learn_representation.py
 
-<img src="https://github.com/priba/nmp_ged/blob/master/readme_plots/learn_graph.png" width="800">
+### Siamese NMP Network
 
-### Siamise NMP Network
-    
+Siamese network. Maps the graph in an Euclidean space and computes the distance.
+
     $ python train_siamese_net.py
 
-<img src="https://github.com/priba/nmp_ged/blob/master/readme_plots/siamese_net.png" width="800">
 
+### Siamese NMP Distance Network
 
-### Siamise NMP Distance Network
+Siamese network. Enrich the graph with node features and computes a Hausdorff Distance
 
     $ python train_siamese_distance.py        
 
-<img src="https://github.com/priba/nmp_ged/blob/master/readme_plots/siamese_distance.png" width="800">
+<img src="https://github.com/priba/nmp_ged/blob/master/readme_plots/pipeline.png" width="800">
 
 ## Bibliography
 - [1] Gilmer *et al.*, [Neural Message Passing for Quantum Chemistry](https://arxiv.org/pdf/1704.01212.pdf), arXiv, 2017.
