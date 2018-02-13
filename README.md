@@ -35,7 +35,7 @@ Siamese network. Enrich the graph with node features and computes a Hausdorff Di
 
     $ python train_siamese_distance.py        
 
-<img src="https://github.com/priba/nmp_ged/blob/master/readme_plots/pipeline.png" width="800">
+<img src="https://github.com/priba/siamese_ged/blob/master/readme_plots/pipeline.png" width="400">
 
 ## Bibliography
 - [1] Gilmer *et al.*, [Neural Message Passing for Quantum Chemistry](https://arxiv.org/pdf/1704.01212.pdf), arXiv, 2017.
