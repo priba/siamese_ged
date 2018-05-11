@@ -2,11 +2,7 @@
 
 Siamese Neural message passing for graph retrieval implementation.
 
-* Pau Riba, Andreas Fischer, Josep Lladós and Alicia Fornes, Learning Graph Distances with Message PassingNeural Networks, ICPR2018 (Submitted)
-
-## Installation
-
-    $ pip install -r requirements.txt
+* Pau Riba, Andreas Fischer, Josep Lladós and Alicia Fornes, Learning Graph Distances with Message PassingNeural Networks, ICPR2018
 
 ## Methodology.
 
@@ -107,7 +103,7 @@ Test a trained models:
         * 5-NN; Average Acc 70.629; Avg Time x Batch 1.979
 ```
 
-<img src="https://github.com/priba/siamese_ged/blob/master/readme_plots/pipeline.png" width="400">
+<p align="center"><img src="https://github.com/priba/siamese_ged/blob/master/readme_plots/pipeline.png" width="400"></p>
 
 ## Bibliography
 - [1] Gilmer *et al.*, [Neural Message Passing for Quantum Chemistry](https://arxiv.org/pdf/1704.01212.pdf), arXiv, 2017.
