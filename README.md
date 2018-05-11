@@ -51,14 +51,60 @@ Siamese network. Enrich the graph with node features and computes a Hausdorff Di
                                      {letters,histograph,histographretrieval}
 ```
 
-Test a trained model
+Test a trained models:
+
+#### Letters
+
+* LOW
 
 ```
-    $ python train_siamese_distance.py $DATA_PATH histograph -t -l ./trained_models/HistoGraph/01_Keypoint/checkpoint.pth --distance SoftHd -b 128 --hidden_size 64 --nlayers 3 --representation feat
+    $ python train_siamese_distance.py $DATA_PATH letters -t -l ./trained_models/LETTERS/LOW/feat_SoftHd_l3_h64.pth --distance SoftHd -b 128 --hidden_size 64 --nlayers 3 --representation feat
+    Test distance:
+        * 1-NN; Average Acc 97.867; Avg Time x Batch 0.480
+        * 3-NN; Average Acc 98.000; Avg Time x Batch 0.480
+        * 5-NN; Average Acc 98.267; Avg Time x Batch 0.480
+```
+
+* MED
+
+```
+    $ python train_siamese_distance.py $DATA_PATH letters -t -l ./trained_models/LETTERS/MED/feat_SoftHd_l3_h64.pth --distance SoftHd -b 128 --hidden_size 64 --nlayers 3 --representation feat
+    Test distance:
+        * 1-NN; Average Acc 88.533; Avg Time x Batch 0.536
+        * 3-NN; Average Acc 88.000; Avg Time x Batch 0.536
+        * 5-NN; Average Acc 89.200; Avg Time x Batch 0.536
+```
+
+* HIGH
+
+```
+    $ python train_siamese_distance.py $DATA_PATH letters -t -l ./trained_models/LETTERS/HIGH/feat_SoftHd_l3_h64.pth --distance SoftHd -b 128 --hidden_size 64 --nlayers 3 --representation feat
+    Test distance:
+        * 1-NN; Average Acc 79.200; Avg Time x Batch 0.529
+        * 3-NN; Average Acc 82.533; Avg Time x Batch 0.529
+        * 5-NN; Average Acc 82.533; Avg Time x Batch 0.529
+```
+
+#### Histograph
+
+* Keypoints
+
+```
+    $ python train_siamese_distance.py $DATA_PATH histograph -t -l ./trained_models/HistoGraph/01_Keypoint/feat_SoftHd_l3_h64.pth --distance SoftHd -b 128 --hidden_size 64 --nlayers 3 --representation feat
     Test distance:
         * 1-NN; Average Acc 87.413; Avg Time x Batch 3.246
         * 3-NN; Average Acc 87.413; Avg Time x Batch 3.246
         * 5-NN; Average Acc 83.217; Avg Time x Batch 3.246
+```
+
+* Projection
+
+```
+    $ python train_siamese_distance.py $DATA_PATH histograph -t -l ./trained_models/HistoGraph/05_Progection/feat_SoftHd_l3_h64.pth --distance SoftHd -b 128 --hidden_size 64 --nlayers 3 --representation feat
+    Test distance:
+        * 1-NN; Average Acc 79.021; Avg Time x Batch 1.979
+        * 3-NN; Average Acc 77.622; Avg Time x Batch 1.979
+        * 5-NN; Average Acc 70.629; Avg Time x Batch 1.979
 ```
 
 <img src="https://github.com/priba/siamese_ged/blob/master/readme_plots/pipeline.png" width="400">
