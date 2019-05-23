@@ -85,6 +85,7 @@ def load_histograph_retrieval_siamese(data_path, representation='adj', normaliza
 
 def collate_fn_multiple_size(batch):
     n_batch = len(batch)
+    
     g_size = torch.LongTensor([x[0].size(0) for x in batch])
     graph_size = torch.LongTensor([[x[0].size(0), x[0].size(1), x[1].size(2)] for x in batch])
     sz, _ = graph_size.max(dim=0)
@@ -92,7 +93,7 @@ def collate_fn_multiple_size(batch):
     n_labels = torch.zeros(n_batch, sz[0], sz[1])
 
     am = torch.zeros(n_batch, sz[0], sz[0], sz[2])
-    targets = torch.LongTensor([x[2] for x in batch])
+    targets = torch.from_numpy(np.array([x[2] for x in batch])).long()
 
     for i in range(n_batch):
         # Node Features

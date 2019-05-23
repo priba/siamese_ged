@@ -4,7 +4,7 @@ import torch
 import torch.utils.data as data
 import xml.etree.ElementTree as ET
 import numpy as np
-import data_utils as du
+import datasets.data_utils as du
 import itertools
 
 import pdb

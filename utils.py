@@ -134,7 +134,7 @@ def meanAveragePrecision(D, target, train_target):
 
 
 def nn_prediction(pred, axis=1):
-    scores = np.unique(np.ravel(pred.data.cpu().numpy()))
+    scores = torch.from_numpy(np.unique(np.ravel(pred.data.cpu().numpy())))
 
     testshape = list(pred.size())
     testshape[axis] = 1
@@ -161,7 +161,7 @@ def nn_prediction(pred, axis=1):
         mostfrequent[(counts > oldcounts) | ((counts==oldcounts) & (ind < mostindex))] = score
         mostindex[(counts > oldcounts) | ((counts==oldcounts) & (ind < mostindex))] = ind[(counts > oldcounts) | ((counts==oldcounts) & (ind < mostindex))]
 
-        oldcounts,_ = torch.max(torch.cat([oldcounts.unsqueeze(0), counts.unsqueeze(0)],1),1, keepdim=True)
+        oldcounts,_ = torch.max(torch.cat([oldcounts.unsqueeze(0), counts.unsqueeze(0)],1),1, keepdim=False)
 
     return mostfrequent.long()
 

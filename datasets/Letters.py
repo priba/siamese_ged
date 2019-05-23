@@ -3,7 +3,7 @@ import torch
 import torch.utils.data as data
 import xml.etree.ElementTree as ET
 import numpy as np
-import data_utils as du
+import datasets.data_utils as du
 import itertools
 
 __author__ = "Pau Riba"
@@ -32,6 +32,7 @@ class Letters(data.Dataset):
             node_labels = du.normalize_mean(node_labels)
 
         am = torch.FloatTensor(am)
+
         return node_labels, am, target
     
     def getId(self, index):
