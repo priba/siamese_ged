@@ -48,7 +48,7 @@ def test(test_loader, train_loader, net, cuda, evaluation):
             h2, am2, g_size2, target2 = Variable(h2), Variable(am2), Variable(g_size2), Variable(target2)
 
             d = net(h1.expand(h2.size(0), h1.size(1), h1.size(2)),
-                    am1.expand(am2.size(0), am1.size(1), am1.size(2), am1.size(2)),
+                    am1.expand(am2.size(0), am1.size(1), am1.size(2), am1.size(3)),
                     g_size1.expand_as(g_size2), h2, am2, g_size2)
 
             D_aux.append(d)
